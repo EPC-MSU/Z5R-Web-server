@@ -7,16 +7,103 @@ import sqlite3
 import time
 import datetime
 import ssl
+import logging
+
+
+class Z5RWebController:
+    def __init__(self, sn):
+        self.sn = sn
+
+    def open(self):
+        conn = sqlite3.connect('service_data/example.sqlite')
+        cursor = conn.cursor()
+        cursor.execute("""
+                       INSERT INTO tasks (serial,type,json)
+                       VALUES (40646, 'Z5RWEB', '{"operation":"open_door","direction": 0}')
+                       """)
+        conn.commit()
+        conn.close()
+
+    def add_card(self):
+        conn = sqlite3.connect('example.sqlite')
+        cursor = conn.cursor()
+        cursor.execute("""
+                       INSERT INTO tasks (serial,type,json)
+                       VALUES (40646, 'Z5RWEB', '{"operation":"add_cards","cards":[{"card": "A8C19E002900","flags": 0,"tz": 255}]}')
+                       """)
+        conn.commit()
+        conn.close()
+
+    def del_card(self):
+        conn = sqlite3.connect('example.sqlite')
+        cursor = conn.cursor()
+        cursor.execute("""
+                       INSERT INTO tasks (serial,type,json)
+                       VALUES (40646, 'Z5RWEB', '{"operation":"del_cards","cards":[{"card": "A8C19E002900"}]}')
+                       """)
+        conn.commit()
+        conn.close()
+
+    def set_tz(self):
+        conn = sqlite3.connect('example.sqlite')
+        cursor = conn.cursor()
+        cursor.execute("""
+                       INSERT INTO tasks (serial,type,json)
+                       VALUES (40646, 'Z5RWEB', '{"operation":"set_timezone","zone": 0,"begin":"00:00","end":"23:59","days":"01111111"}')
+                       """)
+        conn.commit()
+        conn.close()
+
+    def set_door(self):
+        conn = sqlite3.connect('example.sqlite')
+        cursor = conn.cursor()
+        cursor.execute("""
+                       INSERT INTO tasks (serial,type,json)
+                       VALUES (40646, 'Z5RWEB', '{"operation":"set_door_params","open": 10,"open_control":10,"close_control": 10}')
+                       """)
+        conn.commit()
+        conn.close()
 
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
     def do_get(self):
         self.send_error(501, 'Not Implemented')
 
+    def power_on_handler(self):
+        print('CONTROLLER %d POWER ON' % sn)
+        # получим параметры контроллера
+        fw = msg_json.get('fw')
+        conn_fw = msg_json.get('conn_fw')
+        active = msg_json.get('active')
+        mode = msg_json.get('mode')
+        # если контроллер не найден в базе добавим его
+        if ctrl == None:
+            print('UNKNOWN CONTROLLER ADD TO BASE')
+            cursor.execute("""
+                                           INSERT INTO controllers (serial, type, fw, conn_fw, active, mode,last_conn)
+                                           VALUES (%d, '%s', '%s' ,'%s', 0, %d, %d)
+                                           """ % (sn, type, fw, conn_fw, mode, int(time.time())))
+            sql_conn.commit()
+            cursor.execute("SELECT * FROM controllers WHERE serial = %d AND type = '%s'" % (sn, type))
+            ctrl = cursor.fetchone()
+        # если контроллер найден в базе то обновим его параметры
+        else:
+            cursor.execute("""
+                                           UPDATE controllers 
+                                           SET fw = '%s',conn_fw = '%s',mode = %d,last_conn = %d  
+                                           WHERE serial = %d AND type = '%s'
+                                           """ % (fw, conn_fw, mode, int(time.time()), sn, type))
+            sql_conn.commit()
+
+        # проверка флага active в базе. Если не совпадает с присланным контроллером - запрос на изменение active
+        # также сообщим контроллеру, что сервер поддерживает ONLINE
+        if active != ctrl.get('active'):
+            answer.append(json.loads('{"id":0,"operation":"set_active","active": %d,"online": 1}' % ctrl.get('active')))
+
     def do_post(self):
         answer = []
 
-        # проверка длины
+        # Length must not exceed 2000
         msg_len = int(self.headers.getheader('Content-Length'))
         if msg_len > 2000:
             self.send_error(400, 'Bad Request')
@@ -65,35 +152,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     print("UNKNOWN ANSWER:\n%s" % (msg_json) )
             # если это сообщение о включении
             elif operation == 'power_on':
-                print('CONTROLLER %d POWER ON' % sn)
-                # получим параметры контроллера
-                fw = msg_json.get('fw')
-                conn_fw = msg_json.get('conn_fw')
-                active = msg_json.get('active')
-                mode = msg_json.get('mode')
-                # если контроллер не найден в базе добавим его
-                if ctrl == None:
-                    print('UNKNOWN CONTROLLER ADD TO BASE')
-                    cursor.execute("""
-                                   INSERT INTO controllers (serial, type, fw, conn_fw, active, mode,last_conn)
-                                   VALUES (%d, '%s', '%s' ,'%s', 0, %d, %d)
-                                   """ % (sn, type, fw,conn_fw, mode, int(time.time())))
-                    sql_conn.commit()
-                    cursor.execute("SELECT * FROM controllers WHERE serial = %d AND type = '%s'" % (sn,type))
-                    ctrl = cursor.fetchone()
-                # если контроллер найден в базе то обновим его параметры
-                else:
-                    cursor.execute("""
-                                   UPDATE controllers 
-                                   SET fw = '%s',conn_fw = '%s',mode = %d,last_conn = %d  
-                                   WHERE serial = %d AND type = '%s'
-                                   """ % (fw, conn_fw, mode, int(time.time()),  sn, type))
-                    sql_conn.commit()
 
-                #проверка флага active в базе. Если не совпадает с присланным контроллером - запрос на изменение active
-                #также сообщим контроллеру, что сервер поддерживает ONLINE
-                if active != ctrl.get('active'):
-                    answer.append(json.loads('{"id":0,"operation":"set_active","active": %d,"online": 1}' % ctrl.get('active')))
 
             elif operation == "ping":
                 #обновление контроллера в базе
@@ -162,7 +221,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         sql_conn.close()
 
 def run():
-    print('http server is starting...')
+    logging.basicConfig(filename='service_data/z5r.log', encoding='utf-8', level=logging.DEBUG)
+    logging.info('http server is starting...')
     server_address = ('0.0.0.0', 80)
     httpd = HTTPServer(server_address, HTTPRequestHandler)
 
@@ -170,7 +230,7 @@ def run():
         keyfile="key.pem",
         certfile='cert.pem', server_side=True)
 
-    print('http server is running...')
+    logging.info('http server is running...')
     httpd.serve_forever()
 
 if __name__ == '__main__':
