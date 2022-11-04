@@ -176,7 +176,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
 
 def run():
-    logging.basicConfig(filename='../service_data/z5r.log', level=logging.DEBUG)
+    logging.basicConfig(filename='service_data/z5r.log', level=logging.DEBUG)
     logging.info('http server is starting...')
     server_address = ('0.0.0.0', 8080)
     httpd = HTTPServer(server_address, HTTPRequestHandler)
