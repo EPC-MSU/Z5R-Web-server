@@ -2,6 +2,6 @@
 exclude = .git,.hg,__pycache__,venv
 max-line-length = 120
 max-complexity = 14
-inline-quotes = double
+inline-quotes = single
 multiline-quotes = """
 builtins = _
