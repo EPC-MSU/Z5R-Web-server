@@ -1,0 +1,16 @@
+version: '3.3'
+
+services:
+  z5r-server-for-controller:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: z5r-server-for-controller
+    restart: always
+    volumes:
+      - z5r-server:/app/service_data
+    ports:
+      - "8080:80"
+
+volumes:
+  z5r-server:
