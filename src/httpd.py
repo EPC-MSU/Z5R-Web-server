@@ -10,66 +10,16 @@ import ssl
 import logging
 
 
-class Z5RWebController:
-    def __init__(self, sn):
-        self.sn = sn
-
-    def open(self):
-        conn = sqlite3.connect('service_data/example.sqlite')
-        cursor = conn.cursor()
-        cursor.execute("""
-                       INSERT INTO tasks (serial,type,json)
-                       VALUES (40646, 'Z5RWEB', '{"operation":"open_door","direction": 0}')
-                       """)
-        conn.commit()
-        conn.close()
-
-    def add_card(self):
-        conn = sqlite3.connect('example.sqlite')
-        cursor = conn.cursor()
-        cursor.execute("""
-                       INSERT INTO tasks (serial,type,json)
-                       VALUES (40646, 'Z5RWEB', '{"operation":"add_cards","cards":[{"card": "A8C19E002900","flags": 0,"tz": 255}]}')
-                       """)
-        conn.commit()
-        conn.close()
-
-    def del_card(self):
-        conn = sqlite3.connect('example.sqlite')
-        cursor = conn.cursor()
-        cursor.execute("""
-                       INSERT INTO tasks (serial,type,json)
-                       VALUES (40646, 'Z5RWEB', '{"operation":"del_cards","cards":[{"card": "A8C19E002900"}]}')
-                       """)
-        conn.commit()
-        conn.close()
-
-    def set_tz(self):
-        conn = sqlite3.connect('example.sqlite')
-        cursor = conn.cursor()
-        cursor.execute("""
-                       INSERT INTO tasks (serial,type,json)
-                       VALUES (40646, 'Z5RWEB', '{"operation":"set_timezone","zone": 0,"begin":"00:00","end":"23:59","days":"01111111"}')
-                       """)
-        conn.commit()
-        conn.close()
-
-    def set_door(self):
-        conn = sqlite3.connect('example.sqlite')
-        cursor = conn.cursor()
-        cursor.execute("""
-                       INSERT INTO tasks (serial,type,json)
-                       VALUES (40646, 'Z5RWEB', '{"operation":"set_door_params","open": 10,"open_control":10,"close_control": 10}')
-                       """)
-        conn.commit()
-        conn.close()
+MAXIMUM_POST_LENGTH = 2000
 
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
-    def do_get(self):
+    def do_GET(self):  # noqa
+        logging.warning(self.headers.get('User-Agent', failobj='User-Agent not found') +
+                        ' sent GET request but GET method is not implemented.')
         self.send_error(501, 'Not Implemented')
 
-    def power_on_handler(self):
+    def power_on_handler(self, msg_json):
         print('CONTROLLER %d POWER ON' % sn)
         # получим параметры контроллера
         fw = msg_json.get('fw')
@@ -100,24 +50,29 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         if active != ctrl.get('active'):
             answer.append(json.loads('{"id":0,"operation":"set_active","active": %d,"online": 1}' % ctrl.get('active')))
 
-    def do_post(self):
+    def do_POST(self):
         answer = []
 
         # Length must not exceed 2000
-        msg_len = int(self.headers.getheader('Content-Length'))
-        if msg_len > 2000:
+        msg_len = int(self.headers.get('Content-Length'))
+        if msg_len > MAXIMUM_POST_LENGTH:
+            logging.error(self.headers.get('User-Agent', failobj='User-Agent not found') +
+                            ' sent POST request with length more than {}.'.format(MAXIMUM_POST_LENGTH))
             self.send_error(400, 'Bad Request')
 
         msg = self.rfile.read(msg_len)
 
-        # проверка JSON на валидность
+        # Did we receive a correct JSON
         try:
             jsn = json.loads(msg)
         except ValueError:
+            logging.error(self.headers.get('User-Agent', failobj='User-Agent not found') +
+                          ' sent POST request that is not a JSON object.')
             self.send_error(400, 'Bad Request')
             return
         sn = jsn.get('sn')
-        type = jsn.get('type')
+        device_type = jsn.get('type')
+        logging.debug('A request with serial number {} and device type {} was received.'.format(sn, device_type))
 
         def dict_factory(cursor, row):
             d = {}
@@ -152,7 +107,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     print("UNKNOWN ANSWER:\n%s" % (msg_json) )
             # если это сообщение о включении
             elif operation == 'power_on':
-
+                self.power_on_handler(msg_json)
 
             elif operation == "ping":
                 #обновление контроллера в базе
@@ -221,14 +176,14 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         sql_conn.close()
 
 def run():
-    logging.basicConfig(filename='service_data/z5r.log', encoding='utf-8', level=logging.DEBUG)
+    logging.basicConfig(filename='../service_data/z5r.log', level=logging.DEBUG)
     logging.info('http server is starting...')
-    server_address = ('0.0.0.0', 80)
+    server_address = ('0.0.0.0', 8080)
     httpd = HTTPServer(server_address, HTTPRequestHandler)
 
-    httpd.socket = ssl.wrap_socket (httpd.socket,
-        keyfile="key.pem",
-        certfile='cert.pem', server_side=True)
+#    httpd.socket = ssl.wrap_socket (httpd.socket,
+#                                    keyfile="key.pem",
+#                                    certfile='cert.pem', server_side=True)
 
     logging.info('http server is running...')
     httpd.serve_forever()
