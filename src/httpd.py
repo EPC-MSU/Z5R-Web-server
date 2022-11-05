@@ -6,7 +6,7 @@ import json
 import time
 import ssl  # noqa
 import logging
-from .z5r_web import Z5RWebController
+import z5r
 
 
 MAXIMUM_POST_LENGTH = 2000

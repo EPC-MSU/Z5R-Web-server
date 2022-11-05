@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import queue
-import logging
 import datetime
 import time
 
@@ -24,10 +22,10 @@ class Z5RWebController:
         return ret
 
     def success(self, req_id):
-        #print('ANSWER TO %d FROM CONTROLLER %d' % (req_id, sn))
+        # print('ANSWER TO %d FROM CONTROLLER %d' % (req_id, sn))
         # считаем команду успешно отправленной и удалаем из базы
-        #cursor.execute('DELETE FROM tasks WHERE id = %d' % req_id)
-        #sql_conn.commit()
+        # cursor.execute('DELETE FROM tasks WHERE id = %d' % req_id)
+        # sql_conn.commit()
         pass
 
     def power_on_handler(self, msg_json, req_id):
