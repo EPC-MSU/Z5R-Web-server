@@ -7,6 +7,46 @@ import logging
 import json
 
 
+event_names = {0: 'Opened from inside on entrance',
+               1: 'Opened from inside on exit',
+               2: 'Key not in database on entrance',
+               3: 'Key not in database on exit',
+               4: 'Key in database, door opened on entrance',
+               5: 'Key in database, door opened on exit',
+               6: 'Key in database, access denied on entrance',
+               7: 'Key in database, access denied on exit',
+               8: 'Door opened from network on entrance',
+               9: 'Door opened from network on exit',
+               10: 'Key in database, door locked on entrance',
+               11: 'Key in database, door locked on exit',
+               12: 'Door violation on entrance',
+               13: 'Door violation on exit',
+               14: 'Door kept open timeout on entrance',
+               15: 'Door kept open timeout on exit',
+               16: 'Passed on entrance',
+               17: 'Passed on exit',
+               20: 'Controller reboot',
+               21: 'Power (see flag)',
+               32: 'Door opened on entrance',
+               33: 'Door opened on exit',
+               34: 'Door closed on entrance',
+               35: 'Door closed on exit',
+               37: 'Mode changed (see flags)',
+               38: 'Controller on fire (see flags)',
+               39: 'Security event (see flags)',
+               40: 'No passage during grace period on entrance',
+               41: 'No passage during grace period on exit',
+               48: 'Gateway is entered on entrance',
+               49: 'Gateway is entered on exit',
+               50: 'Gateway blocked on entrance',
+               51: 'Gateway blocked on exit',
+               52: 'Gateway enterance allowed on entrance',
+               53: 'Gateway enterance allowed on exit',
+               54: 'Passage blocked on entrance',
+               55: 'Passage blocked on exit'
+               }
+
+
 class Z5RWebController:
     """
     Each controller has a unique serial number. Once created an instance of Z5RWebController keeps Z5R-Web cached state
@@ -80,7 +120,7 @@ class Z5RWebController:
         card = msg_json.get('card')
         reader = msg_json.get('reader')
         logging.info('Controller {} has checked access with card {} on reader {}]'.format(self.sn, card, reader))
-        message = {'id': self._generate_id(),
+        message = {'id': req_id,
                    'operation': 'check_access',
                    'granted': 1
                    }
@@ -94,7 +134,8 @@ class Z5RWebController:
             card = event.get('card')
             event_type = int(event.get('event'))
             flag = int(event.get('flag'))
-            logging.info('Event: sn {} with card {} and event {} flag {}]'.format(self.sn, card, event_type, flag))
+            logging.info('Event: sn {} with card {} and event "{}" flag {}]'.format(
+                self.sn, card, event_names[event_type], flag))
 
         message = {'id': req_id,
                    'operation': 'events',
