@@ -58,13 +58,13 @@ class Z5RWebController:
     def success(self, req_id):
         pass
 
-    def power_on_handler(self, msg_json, _):
+    def power_on_handler(self, msg_json, req_id):
         # Load controller data and store it
         self.fw = msg_json.get('fw')
         self.conn_fw = msg_json.get('conn_fw')
         self.active = msg_json.get('active')
         self.mode = msg_json.get('mode')
-        message = {'id': self._generate_id(),
+        message = {'id': req_id,
                    'operation': 'set_active',
                    'active': self.pending_active,
                    'online': self.online_mode
