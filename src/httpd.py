@@ -111,7 +111,19 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
 
 def run():
-    logging.basicConfig(filename='service_data/z5r.log', level=logging.DEBUG)
+    try:
+        logging.basicConfig(filename='service_data/z5r.log', level=logging.DEBUG)
+    except FileNotFoundError as e:
+        print(e)
+        print('There is no service_data folder in the root of the service folder. '
+              'It seems that you are not using docker-compose.yaml configuration. '
+              'Docker-compose sets working directory in the root of the repository and '
+              'mount a volume for user data in the service_data folder.\n'
+              'If you want to run just Dockerfile, you can create service_data folder yourself. '
+              'If you want to run outside of a container then run python from the root folder like this:\n'
+              'python3 src/httpd.py')
+        exit(1)
+
     logging.info('http server is starting...')
     server_address = ('0.0.0.0', TCP_PORT)
     httpd = HTTPServer(server_address, HTTPRequestHandler)
