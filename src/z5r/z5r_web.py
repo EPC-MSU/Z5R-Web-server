@@ -41,7 +41,7 @@ class Z5RWebController:
             size = 2  # Starting size of list in JSON
             last_index = 0
             for i, msg in enumerate(self.out_pending):
-                size += json.dumps(msg) + 1  # Adding JSON separator size and the message
+                size += len(json.dumps(msg)) + 1  # Adding JSON separator size and the message
                 if size <= max_size:
                     continue
                 else:  # Size exceeded. Need to store last index

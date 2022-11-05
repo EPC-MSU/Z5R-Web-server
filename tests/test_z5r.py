@@ -46,7 +46,7 @@ class TestZ5RWebController(TestCase):
                    'reader_protocol': 'wiegand'}
             z5r.power_on_handler(msg, 358532290)
             response = z5r.get_messages()[0]  # First message should be the response
-            assert(response['active'] == 1)
+            assert (response['active'] == 1)
         except Exception:
             self.assertTrue(False)
 
@@ -59,7 +59,7 @@ class TestZ5RWebController(TestCase):
                    'reader_protocol': 'wiegand'}
             z5r.power_on_handler(msg, 358532290)
             response = z5r.get_messages()[0]  # First message should be the response
-            assert(response['active'] == 0)
+            assert (response['active'] == 0)
             msg = {'id': response['id'], 'success': 1}  # Respond that last message was received
             z5r.set_active()  # Toggle active
             z5r.success(msg)  # Report about successful message receiving
@@ -82,7 +82,7 @@ class TestZ5RWebController(TestCase):
                    'controller_ip': '172.16.130.233',
                    'reader_protocol': 'wiegand'}
             z5r.power_on_handler(msg, 358532290)
-            response = z5r.get_messages()[0]  # First message should be the response
+            z5r.get_messages()  # Clear message queue
             z5r.add_card('00B5009EC1A8')
             response = z5r.get_messages()[0]  # First message should be the response
             assert (response['cards'][0]['card'] == '00B5009EC1A8')
