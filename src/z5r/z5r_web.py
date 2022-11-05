@@ -2,23 +2,30 @@
 # -*- coding: utf-8 -*-
 import datetime
 import time
-
-
-class Transaction:
-    def __init__(self):
-        pass
+import random
 
 
 class Z5RWebController:
+    """
+    Each controller has a unique serial number. Once created an instance of Z5RWebController keeps Z5R-Web cached state
+    and pending state. In response to Z5R-Web request it issues a message to change pending state to an actual state.
+    There is a separate transactions list to store pending transactions. Each transaction is sent in response to request
+    and resides in list until a successful status is received from Z5R-Web with corresponding id.
+    """
     def __init__(self, sn):
         self.sn = sn
         self.online_mode = 0  # Disable online mode for now
         self.interval = 8  # Set fixed interval for now
-        self.out_list = list()
+        self.pending_active = 0  # We start with non active pending state
+        self.out_pending = list()  # A list to hold messages to be sent
+        self.success_pending = list()  # A list of sent messages ids to be received and verified
+
+    def _generate_id(self):
+        return random.randint(0, 2^32 - 1)
 
     def get_messages(self):
-        ret = self.out_list.copy()
-        self.out_list.clear()
+        ret = self.out_pending.copy()
+        self.out_pending.clear()
         return ret
 
     def success(self, req_id):
@@ -34,12 +41,12 @@ class Z5RWebController:
         self.conn_fw = msg_json.get('conn_fw')
         self.active = msg_json.get('active')
         self.mode = msg_json.get('mode')
-        answer = {}
-
-        # проверка флага active в базе. Если не совпадает с присланным контроллером - запрос на изменение active
-        # также сообщим контроллеру, что сервер поддерживает ONLINE
-        if active != ctrl.get('active'):
-            answer.append(json.loads('{"id":0,"operation":"set_active","active": %d,"online": 1}' % ctrl.get('active')))
+        message = {'id': self._generate_id(),
+                   'operation': 'set_active',
+                   'active': self.pending_active,
+                   'online': self.online_mode
+                   }
+        self.out_pending.append(message)
 
     def ping_handler(self, msg_json, req_id):
         active = msg_json.get('active')
