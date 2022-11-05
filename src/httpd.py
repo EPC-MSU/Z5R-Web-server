@@ -90,22 +90,13 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             else:
                 logging.error('Unknown operation {} from {} sn {}'.format(operation, device_type, sn))
 
-        # # поиск задач в базе и формирование посылки контроллеру
-        # tasks = cursor.execute('SELECT id,json FROM tasks WHERE serial = {} AND type = "{}"'.format(sn, device_type))
-        # for task_jsn in tasks:
-        #     if (len(json.dumps(answer))+len(task_jsn['json'])) > 1500:
-        #         break
-        #     task = json.loads(task_jsn['json'])
-        #     task['id'] = task_jsn['id']
-        #     answer.append(task)
-
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
         answer = '{"date":"%s","interval":%d,"messages":%s}' % (
             time.strftime('%Y-%m-%d %H:%M:%S'),
             self.z5r_dict[sn].get_interval(),
-            json.dumps(self.z5r_dict[sn].get_messages())
+            json.dumps(self.z5r_dict[sn].get_messages(max_size=1500))
         )
         self.wfile.write(answer)
 

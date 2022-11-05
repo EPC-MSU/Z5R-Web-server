@@ -3,6 +3,8 @@
 import datetime
 import time
 import random
+import logging
+import json
 
 
 class Z5RWebController:
@@ -19,23 +21,43 @@ class Z5RWebController:
         self.pending_active = 0  # We start with non active pending state
         self.out_pending = list()  # A list to hold messages to be sent
         self.success_pending = list()  # A list of sent messages ids to be received and verified
+        self.fw = None
+        self.conn_fw = None
+        self.active = None
+        self.mode = None
 
-    def _generate_id(self):
-        return random.randint(0, 2^32 - 1)
+    @staticmethod
+    def _generate_id():
+        return random.randint(0, 2 ** 31 - 1)
 
-    def get_messages(self):
-        ret = self.out_pending.copy()
-        self.out_pending.clear()
-        return ret
+    def get_messages(self, max_size=0):
+        if max_size == 0:  # Maximum size unlimited
+            ret = self.out_pending.copy()
+            self.out_pending.clear()
+            return ret
+        elif max_size < 2:
+            raise ValueError('Can not limit size of message to less than 2 bytes.')
+        else:  # Maximum size can be limited by receiving side
+            size = 2  # Starting size of list in JSON
+            last_index = 0
+            for i, msg in enumerate(self.out_pending):
+                size += json.dumps(msg) + 1  # Adding JSON separator size and the message
+                if size <= max_size:
+                    continue
+                else:  # Size exceeded. Need to store last index
+                    last_index = i
+
+            ret = self.out_pending[:last_index]
+            self.out_pending = self.out_pending[last_index:]
+            return ret
+
+    def set_active(self):
+        self.pending_active = 1
 
     def success(self, req_id):
-        # print('ANSWER TO %d FROM CONTROLLER %d' % (req_id, sn))
-        # считаем команду успешно отправленной и удалаем из базы
-        # cursor.execute('DELETE FROM tasks WHERE id = %d' % req_id)
-        # sql_conn.commit()
         pass
 
-    def power_on_handler(self, msg_json, req_id):
+    def power_on_handler(self, msg_json, _):
         # Load controller data and store it
         self.fw = msg_json.get('fw')
         self.conn_fw = msg_json.get('conn_fw')
@@ -48,27 +70,20 @@ class Z5RWebController:
                    }
         self.out_pending.append(message)
 
-    def ping_handler(self, msg_json, req_id):
-        active = msg_json.get('active')
-        mode = msg_json.get('mode')
-        cursor.execute("""
-                                        UPDATE controllers
-                                        SET mode = %d,last_conn = %d
-                                        WHERE serial = %d AND type = '%s'
-                                           """ % (mode, int(time.time()), sn, device_type))
-        sql_conn.commit()
-        # прверка флага active в базе. Если не совпадает с присланным контроллером - запрос на изменение active
-        if active != ctrl.get('active'):
-            answer.append(json.loads('{"id":0,"operation":"set_active","active": %d}' % ctrl.get('active')))
+    def ping_handler(self, msg_json, _):
+        # Update stored controller data
+        self.active = msg_json.get('active')
+        self.mode = msg_json.get('mode')
 
     def check_access_handler(self, msg_json, req_id):
         card = msg_json.get('card')
         reader = msg_json.get('reader')
-        print('CHECK ACCESS FROM CONTROLLER %d [%s on %d]' % (sn, card, reader))
-
-        # Для примера будем всех пропускать
-        granted = 1
-        answer.append(json.loads('{"id":%d,"operation":"check_access","granted":%d}' % (req_id, granted)))
+        logging.info('Controller {} has checked access with card {} on reader {}]'.format(self.sn, card, reader))
+        message = {'id': self._generate_id(),
+                   'operation': 'check_access',
+                   'granted': 1
+                   }
+        self.out_pending.append(message)
 
     def events_handler(self, events_json, req_id):
         for event in events_json:
@@ -85,58 +100,41 @@ class Z5RWebController:
     def get_interval(self):
         return self.interval
 
-    def open_door(self):
+    def open_door(self, direction):
+        message = {'id': self._generate_id(),
+                   'operation': 'open_door',
+                   'direction': direction
+                   }
+        self.out_pending.append(message)
 
-        # cursor.execute("""
-        #                INSERT INTO tasks (serial,type,json)
-        #                VALUES (40646, 'Z5RWEB', '{"operation":"open_door","direction": 0}')
-        #                """)
-        pass
+    def add_card(self, card):
+        message = {'id': self._generate_id(),
+                   'operation': 'add_cards',
+                   'cards': [
+                       {
+                           'card': card,
+                           'flags': 0,
+                           'tz': 255
+                       }
+                   ]
+                   }
+        self.out_pending.append(message)
 
-    def add_card(self):
-        # conn = sqlite3.connect('service_data/example.sqlite')
-        # cursor = conn.cursor()
-        # cursor.execute("""
-        #                INSERT INTO tasks (serial,type,json)
-        #                VALUES (40646, 'Z5RWEB',
-        #                       '{"operation":"add_cards","cards":[{"card": "A8C19E002900","flags": 0,"tz": 255}]}')
-        #                """)
-        # conn.commit()
-        # conn.close()
-        pass
-
-    def del_card(self):
-        # conn = sqlite3.connect('service_data/example.sqlite')
-        # cursor = conn.cursor()
-        # cursor.execute("""
-        #                INSERT INTO tasks (serial,type,json)
-        #                VALUES (40646, 'Z5RWEB',
-        #                       '{"operation":"del_cards","cards":[{"card": "A8C19E002900"}]}')
-        #                """)
-        # conn.commit()
-        # conn.close()
-        pass
+    def del_card(self, card):
+        message = {'id': self._generate_id(),
+                   'operation': 'del_cards',
+                   'cards': [
+                       {
+                           'card': card
+                       }
+                   ]
+                   }
+        self.out_pending.append(message)
 
     def set_tz(self):
-        # conn = sqlite3.connect('service_data/example.sqlite')
-        # cursor = conn.cursor()
-        # cursor.execute("""
-        #                INSERT INTO tasks (serial,type,json)
-        #                VALUES (40646, 'Z5RWEB',
         #                       '{"operation":"set_timezone","zone":0,"begin":"00:00","end":"23:59","days":"01111111"}')
-        #                """)
-        # conn.commit()
-        # conn.close()
         pass
 
     def set_door(self):
-        # conn = sqlite3.connect('service_data/example.sqlite')
-        # cursor = conn.cursor()
-        # cursor.execute("""
-        #                INSERT INTO tasks (serial,type,json)
-        #                VALUES (40646, 'Z5RWEB',
         #                       '{"operation":"set_door_params","open": 10,"open_control":10,"close_control": 10}')
-        #                """)
-        # conn.commit()
-        # conn.close()
         pass
