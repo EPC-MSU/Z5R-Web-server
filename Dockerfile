@@ -20,8 +20,9 @@ FROM shell-ready as python-ready
 
 # pip is required because we use Ubuntu based distro without initial python support
 # various pythons are required by tox test system
+# disutils required for python3.10 because tox under python3.6 can't find deprecated distutils
 RUN apt-get -q -y install \
-    python3.8 python3.10 python3-pip
+    python3.8 python3.10 python3-pip python3.10-distutils
 
 WORKDIR /app
 COPY . .

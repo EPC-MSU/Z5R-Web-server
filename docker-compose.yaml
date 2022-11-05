@@ -6,6 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: z5r-server-for-controller
+    image: z5r-server-image
     restart: always
     volumes:
       - z5r-server:/app/service_data
