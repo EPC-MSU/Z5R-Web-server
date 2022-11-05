@@ -13,8 +13,8 @@ docker-compose используется для подключения volume с 
 ```bash
 sudo docker-compose up -d
 ```
-Это должно создать docker image с установленными пакетами, назвать его z5r-server-image, далее запустить его
-в контейнере с именем z5r-server-for-controller.  
+Это должно создать docker image с установленными пакетами, назвать его `z5r-server-image`, далее запустить его
+в контейнере с именем `z5r-server-for-controller`.  
 Если что-то пошло не так, то можно запустить сервис в текущей консоли и посмотреть логи:
 ```bash
 sudo docker-compose up
@@ -29,9 +29,35 @@ sudo docker-compose up
 
 ### Используем docker-compose
 
+Постройте image и запустите в нём bash
 ```bash
 sudo docker-compose build
-sudo docker image z5r-server-image run -it bash
+sudo docker run --rm -it --entrypoint bash z5r-server-image
+```
+Вы должны быть в директории проекта. Если это не так, то перейдите в неё
+```bash
+cd /app
+```
+Теперь можно запустить тесты через 
+```bash
+tox
+```
+Или можно запустить приложение через
+```bash
+python3 src/httpd.py
+```
+Однако порт TCP не будет доступен снаружи.    
+Для отладки работающего приложения выйдите из image. На хосте запустите
+```bash
+sudo docker-compose up -d
+```
+Проверить логи можно с помощью
+```bash
+sudo docker logs z5r-server-for-controller
+```
+Далее зайдите в работающий контейнер
+```bash
+sudo docker exec -it z5r-server-for-controller bash
 ```
 
 ### Для Ubuntu 18.04
@@ -51,6 +77,10 @@ sudo apt-get install python3.8 python3.10
 ```bash
 sudo apt-get install python3.10-distutils
 ```
+Далее смотри запуск **для другого Linux**
+
+### Для другого Linux
+ 
 Нужно будет создать папку service_data в корне репозитория для пользовательских данных 
 (в docker-compose туда монтируется docker volume):
 ```bash
@@ -60,10 +90,6 @@ mkdir service_data
 ```bash
 python3 src/httpd.py
 ```
-
-### Для другого Linux
-
-Отказываемся использовать tox, так как не соберём нужные python. Будем запускать на том python, что есть в системе.
 
 ### Тесты
 

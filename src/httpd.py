@@ -15,8 +15,8 @@ TCP_PORT = 8080
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
     def __init__(self, request, client_address, server):
-        BaseHTTPRequestHandler.__init__(self, request, client_address, server)
         self.z5r_dict = dict()
+        BaseHTTPRequestHandler.__init__(self, request, client_address, server)
 
     def do_GET(self):  # noqa
         logging.warning(self.headers.get('User-Agent', failobj='User-Agent not found') +
