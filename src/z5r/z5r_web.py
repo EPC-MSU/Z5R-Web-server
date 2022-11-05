@@ -87,15 +87,19 @@ class Z5RWebController:
 
     def events_handler(self, events_json, req_id):
         for event in events_json:
-            ev_time = int(time.mktime(
+            _ = int(time.mktime(
                 datetime.datetime.strptime(event.get('time'), '%Y-%m-%d %H:%M:%S').timetuple()
             ))
+            card = event.get('card')
+            event_type = int(event.get('event'))
+            flag = int(event.get('flag'))
+            logging.info('Event: sn {} with card {} and event {} flag {}]'.format(self.sn, card, event_type, flag))
 
-        answer.append(json.loads('{"id":%d,"operation":"events","events_success":%d}' % (req_id, event_cnt)))
-        cursor.execute("""
-                       INSERT INTO events (time,event,flags,card)
-                       VALUES (%d, %d ,%d, '%s')
-                       """ % (ev_time, event.get('event'), event.get('flag'), event.get('card')))
+        message = {'id': req_id,
+                   'operation': 'events',
+                   'events_success': len(events_json)
+                   }
+        self.out_pending.append(message)
 
     def get_interval(self):
         return self.interval
@@ -131,10 +135,25 @@ class Z5RWebController:
                    }
         self.out_pending.append(message)
 
+    def clear_cards(self):
+        message = {'id': self._generate_id(),
+                   'operation': 'clear_cards'
+                   }
+        self.out_pending.append(message)
+
     def set_tz(self):
-        #                       '{"operation":"set_timezone","zone":0,"begin":"00:00","end":"23:59","days":"01111111"}')
-        pass
+        message = {'operation': 'set_timezone',
+                   'zone': 0,
+                   'begin': '00:00',
+                   'end': '23:59',
+                   'days': '11111110'
+                   }
+        self.out_pending.append(message)
 
     def set_door(self):
-        #                       '{"operation":"set_door_params","open": 10,"open_control":10,"close_control": 10}')
-        pass
+        message = {'operation': 'set_door_params',
+                   'open': 10,
+                   'open_control': 10,
+                   'close_control': 10
+                   }
+        self.out_pending.append(message)

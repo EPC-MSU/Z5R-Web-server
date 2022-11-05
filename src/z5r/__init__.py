@@ -1,1 +1,1 @@
-from .z5r_web import Z5RWebController
+from .z5r_web import Z5RWebController  # noqa

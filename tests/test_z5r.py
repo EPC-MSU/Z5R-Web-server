@@ -1,12 +1,11 @@
 from unittest import TestCase
 from src.z5r import Z5RWebController
-import json
 
 
 class TestZ5RWebController(TestCase):
     def test_creation(self):
         try:
-            z5r = Z5RWebController(0)
+            Z5RWebController(0)
         except Exception:
             self.assertTrue(False)
 

@@ -34,6 +34,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             self.send_error(400, 'Bad Request')
 
         msg = self.rfile.read(msg_len)
+        logging.debug('Received: {}'.format(msg))
 
         # Did we receive a correct JSON
         try:
@@ -52,6 +53,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
         if sn not in self.z5r_dict:
             self.z5r_dict[sn] = z5r.Z5RWebController(sn)
+            self.z5r_dict[sn].set_active()
 
         for msg_json in messages:
             req_id = msg_json.get('id')
@@ -98,6 +100,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             self.z5r_dict[sn].get_interval(),
             json.dumps(self.z5r_dict[sn].get_messages(max_size=1500))
         )
+        logging.debug('Sent: {}'.format(answer))
         self.wfile.write(answer)
 
 
