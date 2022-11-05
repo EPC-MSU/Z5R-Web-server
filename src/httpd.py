@@ -100,6 +100,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             self.z5r_dict[sn].get_interval(),
             json.dumps(self.z5r_dict[sn].get_messages(max_size=1500))
         )
+        answer = answer.encode('utf-8')
         logging.debug('Sent: {}'.format(answer))
         self.wfile.write(answer)
 
