@@ -3,52 +3,25 @@
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
-import sqlite3
 import time
-import datetime
 import ssl  # noqa
 import logging
+from .z5r_web import Z5RWebController
 
 
 MAXIMUM_POST_LENGTH = 2000
+TCP_PORT = 8080
 
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
+    def __init__(self, request, client_address, server):
+        BaseHTTPRequestHandler.__init__(self, request, client_address, server)
+        self.z5r_dict = dict()
+
     def do_GET(self):  # noqa
         logging.warning(self.headers.get('User-Agent', failobj='User-Agent not found') +
                         ' sent GET request but GET method is not implemented.')
         self.send_error(501, 'Not Implemented')
-
-#    def power_on_handler(self, msg_json):
-#        print('CONTROLLER %d POWER ON' % sn)
-#        # получим параметры контроллера
-#        fw = msg_json.get('fw')
-#        conn_fw = msg_json.get('conn_fw')
-#        active = msg_json.get('active')
-#        mode = msg_json.get('mode')
-#        # если контроллер не найден в базе добавим его
-#        if ctrl == None:
-#            print('UNKNOWN CONTROLLER ADD TO BASE')
-#            cursor.execute("""
-#                                           INSERT INTO controllers (serial, type, fw, conn_fw, active, mode,last_conn)
-#                                           VALUES (%d, '%s', '%s' ,'%s', 0, %d, %d)
-#                                           """ % (sn, type, fw, conn_fw, mode, int(time.time())))
-#            sql_conn.commit()
-#            cursor.execute("SELECT * FROM controllers WHERE serial = %d AND type = '%s'" % (sn, type))
-#            ctrl = cursor.fetchone()
-#        # если контроллер найден в базе то обновим его параметры
-#        else:
-#            cursor.execute("""
-#                                           UPDATE controllers
-#                                           SET fw = '%s',conn_fw = '%s',mode = %d,last_conn = %d
-#                                           WHERE serial = %d AND type = '%s'
-#                                           """ % (fw, conn_fw, mode, int(time.time()), sn, type))
-#            sql_conn.commit()
-#
-#        # проверка флага active в базе. Если не совпадает с присланным контроллером - запрос на изменение active
-#        # также сообщим контроллеру, что сервер поддерживает ONLINE
-#        if active != ctrl.get('active'):
-#          answer.append(json.loads('{"id":0,"operation":"set_active","active": %d,"online": 1}' % ctrl.get('active')))
 
     def do_POST(self):  # noqa
         answer = []
@@ -70,115 +43,77 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                           ' sent POST request that is not a JSON object.')
             self.send_error(400, 'Bad Request')
             return
+
         sn = jsn.get('sn')
         device_type = jsn.get('type')
-        logging.debug('A request with serial number {} and device type {} was received.'.format(sn, device_type))
+        messages = jsn.get('messages')
+        logging.debug('A request with serial number {} and device type {}'
+                      ' was received with {} messages.'.format(sn, device_type, len(messages)))
 
-        def dict_factory(cursor, row):
-            d = {}
-            for idx, col in enumerate(cursor.description):
-                d[col[0]] = row[idx]
-            return d
+        if sn not in self.z5r_dict:
+            self.z5r_dict[sn] = Z5RWebController(sn)
 
-        sql_conn = sqlite3.connect('example.sqlite')
-        sql_conn.row_factory = dict_factory
-        cursor = sql_conn.cursor()
-
-        # ищем контроллер в базе
-        cursor.execute("SELECT * FROM controllers WHERE serial = %d AND type = '%s'" % (sn, device_type))
-        ctrl = cursor.fetchone()
-
-        # получим сообщения контроллера
-        msgs_json = jsn['messages']
-
-        for msg_json in msgs_json:
-            # получим операцию из сообщения
-            operation = msg_json.get('operation')
+        for msg_json in messages:
             req_id = msg_json.get('id')
-            # нет операции
-            if operation is None:
-                # если это ответ на сообщение сервера
+            if req_id is None:
+                logging.error('No id in {} from {} sn {}. Skipping message.'.format(msg_json, device_type, sn))
+                continue
+
+            operation = msg_json.get('operation')  # Get operation type for processing
+            if operation is None:  # No operation means it is an answer from Z5R
                 if msg_json.get('success') == 1:
-                    print('ANSWER TO %d FROM CONTROLLER %d' % (req_id, sn))
-                    # считаем команду успешно отправленной и удалаем из базы
-                    cursor.execute('DELETE FROM tasks WHERE id = %d' % req_id)
-                    sql_conn.commit()
+                    logging.debug('Success from {} sn {} on request id {}.'.format(device_type, sn, req_id))
+                    self.z5r_dict[sn].success(req_id)
                 else:
-                    print('UNKNOWN ANSWER:\n%s' % msg_json)
-            # если это сообщение о включении
-            elif operation == 'power_on':
-                self.power_on_handler(msg_json)
+                    logging.error('Unknown answer {} from {} sn {}.'.format(msg_json, device_type, sn))
 
-            elif operation == 'ping':
-                # обновление контроллера в базе
-                print('PING FROM CONTROLLER %d' % sn)
-                active = msg_json.get('active')
-                mode = msg_json.get('mode')
-                cursor.execute("""
-                                UPDATE controllers
-                                SET mode = %d,last_conn = %d
-                                WHERE serial = %d AND type = '%s'
-                                   """ % (mode, int(time.time()),  sn, device_type))
-                sql_conn.commit()
-                # прверка флага active в базе. Если не совпадает с присланным контроллером - запрос на изменение active
-                if active != ctrl.get('active'):
-                    answer.append(json.loads('{"id":0,"operation":"set_active","active": %d}' % ctrl.get('active')))
+            elif operation == 'power_on':  # Power on operation is sent to make initialization
+                logging.info('Power on from {} sn {} received.'.format(device_type, sn))
+                self.z5r_dict[sn].power_on_handler(msg_json, req_id)
+                # Response is not required
 
-            elif operation == 'check_access':
-                # проверка доступа в режиме online
-                card = msg_json.get('card')
-                reader = msg_json.get('reader')
-                print('CHECK ACCESS FROM CONTROLLER %d [%s on %d]' % (sn, card, reader))
+            elif operation == 'ping':  # Periodical signal to request data from server
+                logging.debug('Ping from {} sn {} received.'.format(device_type, sn))
+                self.z5r_dict[sn].ping_handler(msg_json, req_id)
+                # Response is a list of messages
 
-                # Для примера будем всех пропускать
-                granted = 1
-                answer.append(json.loads('{"id":%d,"operation":"check_access","granted":%d}' % (req_id, granted)))
+            elif operation == 'check_access':  # Pass/block check for online server mode only
+                logging.debug('Check access from {} sn {} received.'.format(device_type, sn))
+                self.z5r_dict[sn].check_access_handler(msg_json, req_id)
+                # Must respond
 
             elif operation == 'events':
-                # запись событий в базу
-                print('EVENTS FROM CONTROLLER %d' % sn)
-                events = msg_json.get('events')
-                event_cnt = 0
-                for event in events:
-                    event_cnt += 1
-                    ev_time = int(time.mktime(datetime.datetime.strptime(event.get('time'),
-                                                                         '%Y-%m-%d %H:%M:%S').timetuple()))
-                    cursor.execute("""
-                                   INSERT INTO events (time,event,flags,card)
-                                   VALUES (%d, %d ,%d, '%s')
-                                   """ % (ev_time, event.get('event'), event.get('flag'), event.get('card')))
-
-                # сообщим контроллеру об успешной записи событий в базу
-                sql_conn.commit()
-                print('EVENT_SUCCESS: %d' % event_cnt)
-                answer.append(json.loads('{"id":%d,"operation":"events","events_success":%d}' % (req_id, event_cnt)))
+                logging.debug('Events from {} sn {} received.'.format(device_type, sn))
+                self.z5r_dict[sn].events_handler(msg_json.get('events'), req_id)
+                # Must respond
 
             else:
-                print('UNKNOWN OERATION')
+                logging.error('Unknown operation {} from {} sn {}'.format(operation, device_type, sn))
 
-        # поиск задач в базе и формирование посылки контроллеру
-        tasks = cursor.execute('SELECT id,json FROM tasks WHERE serial = {} AND type = "{}"'.format(sn, device_type))
-        for task_jsn in tasks:
-            if (len(json.dumps(answer))+len(task_jsn['json'])) > 1500:
-                break
-            task = json.loads(task_jsn['json'])
-            task['id'] = task_jsn['id']
-            answer.append(task)
+        # # поиск задач в базе и формирование посылки контроллеру
+        # tasks = cursor.execute('SELECT id,json FROM tasks WHERE serial = {} AND type = "{}"'.format(sn, device_type))
+        # for task_jsn in tasks:
+        #     if (len(json.dumps(answer))+len(task_jsn['json'])) > 1500:
+        #         break
+        #     task = json.loads(task_jsn['json'])
+        #     task['id'] = task_jsn['id']
+        #     answer.append(task)
 
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
-        answer = '{"date":"%s","interval":%d,"messages":%s}'\
-                 % (time.strftime('%Y-%m-%d %H:%M:%S'), ctrl.get('interval'), json.dumps(answer))
+        answer = '{"date":"%s","interval":%d,"messages":%s}' % (
+            time.strftime('%Y-%m-%d %H:%M:%S'),
+            self.z5r_dict[sn].get_interval(),
+            json.dumps(self.z5r_dict[sn].get_messages())
+        )
         self.wfile.write(answer)
-
-        sql_conn.close()
 
 
 def run():
     logging.basicConfig(filename='service_data/z5r.log', level=logging.DEBUG)
     logging.info('http server is starting...')
-    server_address = ('0.0.0.0', 8080)
+    server_address = ('0.0.0.0', TCP_PORT)
     httpd = HTTPServer(server_address, HTTPRequestHandler)
 
 #    httpd.socket = ssl.wrap_socket (httpd.socket,
