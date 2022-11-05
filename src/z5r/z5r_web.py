@@ -39,14 +39,15 @@ class Z5RWebController:
             raise ValueError('Can not limit size of message to less than 2 bytes.')
         else:  # Maximum size can be limited by receiving side
             size = 2  # Starting size of list in JSON
-            last_index = 0
+            last_index = -1
             for i, msg in enumerate(self.out_pending):
                 size += len(json.dumps(msg)) + 1  # Adding JSON separator size and the message
-                if size <= max_size:
-                    continue
-                else:  # Size exceeded. Need to store last index
-                    last_index = i
-
+                if size > max_size:
+                    break
+                last_index = i  # Storing last index
+            if last_index == -1:  # No message passed through limit
+                return []
+            last_index += 1  # Messages passes through the limit and the next one index is what we need for slices
             ret = self.out_pending[:last_index]
             self.out_pending = self.out_pending[last_index:]
             return ret
