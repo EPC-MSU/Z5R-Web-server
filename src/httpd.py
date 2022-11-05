@@ -51,7 +51,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                       ' was received with {} messages.'.format(sn, device_type, len(messages)))
 
         if sn not in self.z5r_dict:
-            self.z5r_dict[sn] = Z5RWebController(sn)
+            self.z5r_dict[sn] = z5r.Z5RWebController(sn)
 
         for msg_json in messages:
             req_id = msg_json.get('id')

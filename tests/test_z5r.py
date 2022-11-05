@@ -16,10 +16,10 @@ class TestZ5RWebController(TestCase):
         try:
             z5r = Z5RWebController(0)
             msg = [
-                {"id": 358532290, "operation": "power_on", "fw": "3.42",
-                 "conn_fw": "1.0.157", "active": 0, "mode": 0,
-                 "controller_ip": "172.16.130.233",
-                 "reader_protocol": "wiegand"}]
+                {'id': 358532290, 'operation': 'power_on', 'fw': '3.42',
+                 'conn_fw': '1.0.157', 'active': 0, 'mode': 0,
+                 'controller_ip': '172.16.130.233',
+                 'reader_protocol': 'wiegand'}]
             z5r.power_on_handler(json.dumps(msg), 358532290)
         except Exception:
             self.assertTrue(False)
