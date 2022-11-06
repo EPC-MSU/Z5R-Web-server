@@ -14,9 +14,11 @@ MAXIMUM_POST_LENGTH = 2000
 TCP_PORT = 8080
 
 
+z5r_dict = dict()
+
+
 class HTTPRequestHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
-        self.z5r_dict = dict()
         self._auth = base64.b64encode('zap:pass'.encode()).decode()
         super().__init__(*args, **kwargs)
 
@@ -37,7 +39,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(b'no auth header received')
         elif self.headers.get('Authorization') == 'Basic ' + self._auth:
             self.do_HEAD()
-            answer = z5r.get_page(self.z5r_dict).encode('utf-8')
+            answer = z5r.get_page(z5r_dict).encode('utf-8')
             self.wfile.write(answer)
         else:
             self.do_AUTHHEAD()
@@ -70,9 +72,9 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         logging.debug('A request with serial number {} and device type {}'
                       ' was received with {} messages.'.format(sn, device_type, len(messages)))
 
-        if sn not in self.z5r_dict:
-            self.z5r_dict[sn] = z5r.Z5RWebController(sn)
-            self.z5r_dict[sn].set_active()
+        if sn not in z5r_dict:
+            z5r_dict[sn] = z5r.Z5RWebController(sn)
+            z5r_dict[sn].set_active()
 
         for msg_json in messages:
             req_id = msg_json.get('id')
@@ -84,28 +86,28 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             if operation is None:  # No operation means it is an answer from Z5R
                 if msg_json.get('success') == 1:
                     logging.debug('Success from {} sn {} on request id {}.'.format(device_type, sn, req_id))
-                    self.z5r_dict[sn].success(req_id)
+                    z5r_dict[sn].success(req_id)
                 else:
                     logging.error('Unknown answer {} from {} sn {}.'.format(msg_json, device_type, sn))
 
             elif operation == 'power_on':  # Power on operation is sent to make initialization
                 logging.info('Power on from {} sn {} received.'.format(device_type, sn))
-                self.z5r_dict[sn].power_on_handler(msg_json, req_id)
+                z5r_dict[sn].power_on_handler(msg_json, req_id)
                 # Response is not required
 
             elif operation == 'ping':  # Periodical signal to request data from server
                 logging.debug('Ping from {} sn {} received.'.format(device_type, sn))
-                self.z5r_dict[sn].ping_handler(msg_json, req_id)
+                z5r_dict[sn].ping_handler(msg_json, req_id)
                 # Response is a list of messages
 
             elif operation == 'check_access':  # Pass/block check for online server mode only
                 logging.debug('Check access from {} sn {} received.'.format(device_type, sn))
-                self.z5r_dict[sn].check_access_handler(msg_json, req_id)
+                z5r_dict[sn].check_access_handler(msg_json, req_id)
                 # Must respond
 
             elif operation == 'events':
                 logging.debug('Events from {} sn {} received.'.format(device_type, sn))
-                self.z5r_dict[sn].events_handler(msg_json.get('events'), req_id)
+                z5r_dict[sn].events_handler(msg_json.get('events'), req_id)
                 # Must respond
 
             else:
@@ -116,8 +118,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         answer = '{"date":"%s","interval":%d,"messages":%s}' % (
             time.strftime('%Y-%m-%d %H:%M:%S'),
-            self.z5r_dict[sn].get_interval(),
-            json.dumps(self.z5r_dict[sn].get_messages(max_size=1500))
+            z5r_dict[sn].get_interval(),
+            json.dumps(z5r_dict[sn].get_messages(max_size=1500))
         )
         answer = answer.encode('utf-8')
         logging.debug('Sent: {}'.format(answer))

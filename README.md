@@ -36,8 +36,9 @@ sudo docker-compose up
 Постройте image и запустите в нём bash
 ```bash
 sudo docker-compose build
-sudo docker run --rm -it --entrypoint bash z5r-server-image
+sudo docker run --rm -it --entrypoint bash -p 8080:8080 z5r-server-image
 ```
+Указание `-p 8080:8080` важно, чтобы приложение было доступно по этому порту снаружи.
 Вы должны быть в директории проекта. Если это не так, то перейдите в неё
 ```bash
 cd /app
@@ -49,8 +50,7 @@ tox
 Или можно запустить приложение через
 ```bash
 python3 src/httpd.py
-```
-Однако порт TCP не будет доступен снаружи.    
+```   
 Для отладки работающего приложения выйдите из image. На хосте запустите
 ```bash
 sudo docker-compose up -d
