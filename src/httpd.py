@@ -8,6 +8,7 @@ import ssl  # noqa
 import logging
 import z5r
 import base64
+from urllib.parse import urlparse, parse_qs
 
 
 MAXIMUM_POST_LENGTH = 2000
@@ -39,6 +40,9 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(b'no auth header received')
         elif self.headers.get('Authorization') == 'Basic ' + self._auth:
             self.do_HEAD()
+            # Parse and process parameters in URL
+            z5r.action_handler(parse_qs(urlparse(self.path)))
+            # Display control page
             answer = z5r.get_page(z5r_dict).encode('utf-8')
             self.wfile.write(answer)
         else:

@@ -1,4 +1,29 @@
-def per_controller_page(sn):
+import logging
+
+
+def action_handler(query, controllers_dict):
+    try:
+        _ = controllers_dict[int(query['sn'])]
+    except ValueError:
+        logging.error('Could not resolve a designated controller from query.')
+        return
+    if query['action'] == 'open_door':
+        pass
+    elif query['action'] == 'set_mode':
+        pass
+    elif query['action'] == 'set_door_params':
+        pass
+    elif query['action'] == 'add_cards':
+        pass
+    elif query['action'] == 'del_cards':
+        pass
+    elif query['action'] == 'clear_cards':
+        pass
+    else:
+        logging.error('Unknown action.')
+
+
+def _per_controller_page(sn):
     # Heading
     answer = '<h2 style="text-align: center;">Controller SN{}</h1>'.format(sn)
 
@@ -131,6 +156,6 @@ def get_page(controllers_dict):
 """
     answer = head
     for sn in controllers_dict:
-        answer += per_controller_page(sn)
+        answer += _per_controller_page(sn)
     answer += tail
     return answer
