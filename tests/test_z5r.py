@@ -1,5 +1,7 @@
 from unittest import TestCase
 from src.z5r import Z5RWebController
+import os
+import binascii
 
 
 class TestZ5RWebController(TestCase):
@@ -91,5 +93,32 @@ class TestZ5RWebController(TestCase):
             z5r.del_card('00B5009EC1A8')
             response = z5r.get_messages()[0]  # First message should be the response
             assert (response['cards'][0]['card'] == '00B5009EC1A8')
+        except Exception:
+            self.assertTrue(False)
+
+    def test_add_many_cards(self):
+        try:
+            z5r = Z5RWebController(0)
+            z5r.set_active()
+            msg = {'id': 358532290, 'operation': 'power_on', 'fw': '3.42',
+                   'conn_fw': '1.0.157', 'active': 0, 'mode': 0,
+                   'controller_ip': '172.16.130.233',
+                   'reader_protocol': 'wiegand'}
+            z5r.power_on_handler(msg, 358532290)
+            z5r.get_messages()  # Clear message queue
+            for i in range(0, 25):
+                z5r.add_card(binascii.hexlify(os.urandom(6)).decode())
+            total_messages = 0
+            while True:
+                response = z5r.get_messages(1000)
+                total_messages += len(response)
+                if len(response) == 0:
+                    break
+                for msg in response:
+                    assert ('card' in msg['cards'][0])
+                    assert ('flags' in msg['cards'][0])
+                    assert ('tz' in msg['cards'][0])
+            # Actually there could be less messages, when multiple cards are added in a single message.
+            assert(total_messages == 25)
         except Exception:
             self.assertTrue(False)

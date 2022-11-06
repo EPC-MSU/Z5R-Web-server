@@ -7,6 +7,7 @@ import time
 import ssl  # noqa
 import logging
 import z5r
+import base64
 
 
 MAXIMUM_POST_LENGTH = 2000
@@ -14,19 +15,36 @@ TCP_PORT = 8080
 
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
-    def __init__(self, request, client_address, server):
+    def __init__(self, *args, **kwargs):
         self.z5r_dict = dict()
-        BaseHTTPRequestHandler.__init__(self, request, client_address, server)
+        self._auth = base64.b64encode('zap:pass'.encode()).decode()
+        super().__init__(*args, **kwargs)
+
+    def do_HEAD(self):  # noqa
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+
+    def do_AUTHHEAD(self):  # noqa
+        self.send_response(401)
+        self.send_header('WWW-Authenticate', 'Basic realm="Test"')
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
 
     def do_GET(self):  # noqa
-        logging.warning(self.headers.get('User-Agent', failobj='User-Agent not found') +
-                        ' sent GET request but GET method is not implemented.')
-        self.send_error(501, 'Not Implemented')
+        if self.headers.get('Authorization') is None:
+            self.do_AUTHHEAD()
+            self.wfile.write('no auth header received')
+        elif self.headers.get('Authorization') == 'Basic ' + self._auth:
+            self.do_HEAD()
+            self.wfile.write('Works')
+        else:
+            self.do_AUTHHEAD()
+            self.wfile.write(self.headers.get('Authorization').encode())
+            self.wfile.write('not authenticated')
 
     def do_POST(self):  # noqa
-        answer = []
-
-        # Length must not exceed 2000
+        # Length must not exceed MAXIMUM_POST_LENGTH
         msg_len = int(self.headers.get('Content-Length'))
         if msg_len > MAXIMUM_POST_LENGTH:
             logging.error(self.headers.get('User-Agent', failobj='User-Agent not found')
