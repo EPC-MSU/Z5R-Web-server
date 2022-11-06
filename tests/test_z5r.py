@@ -119,6 +119,6 @@ class TestZ5RWebController(TestCase):
                     assert ('flags' in msg['cards'][0])
                     assert ('tz' in msg['cards'][0])
             # Actually there could be less messages, when multiple cards are added in a single message.
-            assert(total_messages == 25)
+            assert (total_messages == 25)
         except Exception:
             self.assertTrue(False)
