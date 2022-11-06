@@ -76,7 +76,10 @@ Open control is time of control for opened door [1/10s]). Close control is time 
 <input type="text" name="{forms[3]}_tz" value="255" form="{forms[3]}_{sn}">
 </td>
 <td style="width: 33.3333%; height: 18px;">
-Insert manual here
+Add cards into a controller memory. Already stored cards are overwritten with new flags and tz parameters.
+Card number must be in HEX and contain 12 symbols (6 bytes).
+Flags can be 8 for blocking card and 32 for cards with short code (3 bytes).
+Time zone - time zone for the card.
 </td>
 </tr>"""
 
@@ -90,7 +93,7 @@ Insert manual here
 <input type="text" name="{forms[4]}_card" value="123456789ABC" form="{forms[4]}_{sn}">
 </td>
 <td style="width: 33.3333%; height: 18px;">
-Insert manual here
+Delete card from a controller memory. Card number must be in HEX and contain 12 symbols (6 bytes).
 </td>
 </tr>"""
 
@@ -102,7 +105,7 @@ Insert manual here
 <td style="width: 33.3333%; height: 18px;">
 </td>
 <td style="width: 33.3333%; height: 18px;">
-Insert manual here
+Delete all cards stored in controller memory.
 </td>
 </tr>"""
 
