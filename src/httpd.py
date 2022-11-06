@@ -37,7 +37,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write('no auth header received')
         elif self.headers.get('Authorization') == 'Basic ' + self._auth:
             self.do_HEAD()
-            self.wfile.write('Works')
+            answer = z5r.get_page(self.z5r_dict).encode('utf-8')
+            self.wfile.write(answer)
         else:
             self.do_AUTHHEAD()
             self.wfile.write(self.headers.get('Authorization').encode())
@@ -63,7 +64,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             self.send_error(400, 'Bad Request')
             return
 
-        sn = jsn.get('sn')
+        sn = int(jsn.get('sn'))
         device_type = jsn.get('type')
         messages = jsn.get('messages')
         logging.debug('A request with serial number {} and device type {}'
