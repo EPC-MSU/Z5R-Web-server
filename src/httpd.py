@@ -34,15 +34,15 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):  # noqa
         if self.headers.get('Authorization') is None:
             self.do_AUTHHEAD()
-            self.wfile.write('no auth header received')
+            self.wfile.write(b'no auth header received')
         elif self.headers.get('Authorization') == 'Basic ' + self._auth:
             self.do_HEAD()
             answer = z5r.get_page(self.z5r_dict).encode('utf-8')
             self.wfile.write(answer)
         else:
             self.do_AUTHHEAD()
-            self.wfile.write(self.headers.get('Authorization').encode())
-            self.wfile.write('not authenticated')
+            self.wfile.write(self.headers.get('Authorization').encode('utf-8'))
+            self.wfile.write(b'not authenticated')
 
     def do_POST(self):  # noqa
         # Length must not exceed MAXIMUM_POST_LENGTH

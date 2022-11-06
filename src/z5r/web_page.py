@@ -127,7 +127,7 @@ def get_page(controllers_dict):
 </html>
 """
     answer = head
-    for controller in controllers_dict:
-        answer += per_controller_page(controller.sn)
+    for sn in controllers_dict:
+        answer += per_controller_page(sn)
     answer += tail
     return answer
