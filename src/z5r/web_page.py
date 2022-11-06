@@ -3,23 +3,26 @@ import logging
 
 def action_handler(query, controllers_dict):
     try:
-        _ = controllers_dict[int(query['sn'])]
+        _ = controllers_dict[int(query['sn'][0])]
     except ValueError:
         logging.error('Could not resolve a designated controller from query.')
         return
     except KeyError:  # There is no action
         return
-    if query['action'] == 'open_door':
+    except TypeError as e:
+        logging.error(e)
+        return
+    if query['action'][0] == 'open_door':
         pass
-    elif query['action'] == 'set_mode':
+    elif query['action'][0] == 'set_mode':
         pass
-    elif query['action'] == 'set_door_params':
+    elif query['action'][0] == 'set_door_params':
         pass
-    elif query['action'] == 'add_cards':
+    elif query['action'][0] == 'add_cards':
         pass
-    elif query['action'] == 'del_cards':
+    elif query['action'][0] == 'del_cards':
         pass
-    elif query['action'] == 'clear_cards':
+    elif query['action'][0] == 'clear_cards':
         pass
     else:
         logging.error('Unknown action.')
