@@ -1,4 +1,7 @@
+import logging
+
 def per_controller_page(sn):
+    logging.debug(f'Invoked per_controller_page with sn={sn}')
     # Heading
     answer = '<h2 style="text-align: center;">Controller SN{}</h1>'.format(sn)
 
@@ -129,5 +132,6 @@ def get_page(controllers_dict):
     answer = head
     for sn in controllers_dict:
         answer += per_controller_page(sn)
+    answer += per_controller_page(0)
     answer += tail
     return answer
