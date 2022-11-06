@@ -41,7 +41,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         elif self.headers.get('Authorization') == 'Basic ' + self._auth:
             self.do_HEAD()
             # Parse and process parameters in URL
-            z5r.action_handler(parse_qs(urlparse(self.path)))
+            z5r.action_handler(parse_qs(urlparse(self.path).query), z5r_dict)
             # Display control page
             answer = z5r.get_page(z5r_dict).encode('utf-8')
             self.wfile.write(answer)

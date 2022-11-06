@@ -7,6 +7,8 @@ def action_handler(query, controllers_dict):
     except ValueError:
         logging.error('Could not resolve a designated controller from query.')
         return
+    except KeyError:  # There is no action
+        return
     if query['action'] == 'open_door':
         pass
     elif query['action'] == 'set_mode':
