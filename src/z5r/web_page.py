@@ -164,11 +164,12 @@ Delete all cards stored in controller memory.
 
 def get_page(controllers_dict):
     head = """
-<!DOCTYPE html>.
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <title>Z5R control</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
 <style>
 .collapsible {
   background-color: #777;
