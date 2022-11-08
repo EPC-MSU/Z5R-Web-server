@@ -6,7 +6,7 @@ import binascii
 
 os.chdir(os.path.dirname(__file__) + '/..')
 if not os.path.isdir('service_data'):
-    os.mkdir('service_data', 0o666)
+    os.mkdir('service_data', 0o777)
 
 
 class TestZ5RWebController(TestCase):
