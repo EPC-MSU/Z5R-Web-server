@@ -4,7 +4,7 @@ import os
 import binascii
 
 
-os.chdir('..')
+os.chdir(os.path.dirname(__file__) + '/..')
 if not os.path.isdir('service_data'):
     os.mkdir('service_data', 0o666)
 
