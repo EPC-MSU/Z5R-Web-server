@@ -5,6 +5,8 @@ import binascii
 
 
 os.chdir('..')
+if not os.path.isdir('service_data'):
+    os.mkdir('service_data', 0o666)
 
 
 class TestZ5RWebController(TestCase):
