@@ -5,6 +5,7 @@ import time
 import random
 import logging
 import json
+import sqlite3
 
 
 event_names = {0: 'Opened from inside on entrance',
@@ -66,6 +67,12 @@ class Z5RWebController:
         self.active = None
         self.mode = None
         self.event_file = open('service_data/{}_events.log'.format(sn), 'a')
+        self.con = sqlite3.connect('service_data/{}_events.db'.format(sn))
+        # Check that this database is valid
+        cur = self.con.cursor()
+        res = cur.execute('SELECT name FROM sqlite_master')
+        if 'events' not in res.fetchone():
+            cur.execute('CREATE TABLE events(time, card, event_name, event_code, flags)')
 
     def __del__(self):
         self.event_file.close()
@@ -142,6 +149,13 @@ class Z5RWebController:
             flag = int(event.get('flag'))
             logging.info('Event: sn {} with card {} and event "{}" flag {} on {}]'.format(
                 self.sn, card, event_names[event_type], flag, event.get('time')))
+
+            # Write all events into database
+            cur = self.con.cursor()
+            cur.executemany('INSERT INTO events VALUES(?, ?, ?, ?, ?)', [
+                (event_time, card, event_names[event_type], event_type, flag)
+            ])
+            self.con.commit()
 
             # Write events to separate log file
             if card != '000000000000':
