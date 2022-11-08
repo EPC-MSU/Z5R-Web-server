@@ -4,6 +4,9 @@ import os
 import binascii
 
 
+os.chdir('..')
+
+
 class TestZ5RWebController(TestCase):
     def test_creation(self):
         try:

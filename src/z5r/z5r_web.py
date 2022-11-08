@@ -65,6 +65,10 @@ class Z5RWebController:
         self.conn_fw = None
         self.active = None
         self.mode = None
+        self.event_file = open('service_data/{}_events.log'.format(sn), 'a')
+
+    def __del__(self):
+        self.event_file.close()
 
     @staticmethod
     def _generate_id():
@@ -115,6 +119,8 @@ class Z5RWebController:
         # Update stored controller data
         self.active = msg_json.get('active')
         self.mode = msg_json.get('mode')
+        # Flush event log file periodically
+        self.event_file.flush()
 
     def check_access_handler(self, msg_json, req_id):
         card = msg_json.get('card')
@@ -128,14 +134,19 @@ class Z5RWebController:
 
     def events_handler(self, events_json, req_id):
         for event in events_json:
-            _ = int(time.mktime(
+            event_time = int(time.mktime(
                 datetime.datetime.strptime(event.get('time'), '%Y-%m-%d %H:%M:%S').timetuple()
             ))
             card = event.get('card')
             event_type = int(event.get('event'))
             flag = int(event.get('flag'))
-            logging.info('Event: sn {} with card {} and event "{}" flag {}]'.format(
-                self.sn, card, event_names[event_type], flag))
+            logging.info('Event: sn {} with card {} and event "{}" flag {} on {}]'.format(
+                self.sn, card, event_names[event_type], flag, event.get('time')))
+
+            # Write events to separate log file
+            if int(card) != 0:
+                self.event_file.write('time {} card {} event "{}" flag {}.'.format(
+                    event_time, card, event_names[event_type], flag))
 
         message = {'id': req_id,
                    'operation': 'events',
