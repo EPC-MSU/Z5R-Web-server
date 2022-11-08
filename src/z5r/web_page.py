@@ -36,7 +36,7 @@ def action_handler(query, controllers_dict):
 
 def _per_controller_page(sn):
     # Heading
-    answer = '<h2 style="text-align: center;">Controller SN{}</h1>'.format(sn)
+    answer = '<h2 style="text-align: center;">Controller SN{}</h2>'.format(sn)
 
     # Forms outside the table
     forms = ['open_door', 'set_mode', 'set_door_params', 'add_cards', 'del_cards', 'clear_cards']
@@ -58,7 +58,7 @@ def _per_controller_page(sn):
 </td>
 <td style="width: 33.3333%; height: 18px;">
 <label for="{forms[0]}_direction">Direction:</label>
-<input type="text" name="{forms[0]}_direction" value="0" form="{forms[0]}_{sn}">
+<input type="text" id="{forms[0]}_direction" name="{forms[0]}_direction" value="0" form="{forms[0]}_{sn}">
 </td>
 <td style="width: 33.3333%; height: 18px;">
 Opens the door. Direction 0 is for entrance. Direction 1 is for exit.
@@ -72,7 +72,7 @@ Opens the door. Direction 0 is for entrance. Direction 1 is for exit.
 </td>
 <td style="width: 33.3333%; height: 18px;">
 <label for="{forms[1]}_mode">Mode:</label>
-<input type="text" name="{forms[1]}_mode" value="0" form="{forms[1]}_{sn}">
+<input type="text" id="{forms[1]}_mode" name="{forms[1]}_mode" value="0" form="{forms[1]}_{sn}">
 </td>
 <td style="width: 33.3333%; height: 18px;">
 Sets controller mode: 0 - normal, 1 - block, 2 - free passage, 3 - waiting for free passage.
@@ -86,11 +86,11 @@ Sets controller mode: 0 - normal, 1 - block, 2 - free passage, 3 - waiting for f
 </td>
 <td style="width: 33.3333%; height: 18px;">
 <label for="{forms[2]}_open">Open:</label>
-<input type="text" name="{forms[2]}_open" value="30" form="{forms[2]}_{sn}"><br>
+<input type="text" id="{forms[2]}_open" name="{forms[2]}_open" value="30" form="{forms[2]}_{sn}"><br>
 <label for="{forms[2]}_open_control">Open control:</label>
-<input type="text" name="{forms[2]}_open_control" value="50" form="{forms[2]}_{sn}"><br>
+<input type="text" id="{forms[2]}_open_control" name="{forms[2]}_open_control" value="50" form="{forms[2]}_{sn}"><br>
 <label for="{forms[2]}_close_control">Close control:</label>
-<input type="text" name="{forms[2]}_close_control" value="50" form="{forms[2]}_{sn}">
+<input type="text" id="{forms[2]}_close_control" name="{forms[2]}_close_control" value="50" form="{forms[2]}_{sn}">
 </td>
 <td style="width: 33.3333%; height: 18px;">
 Sets the time for opening and closing of the door. Open is time for opening door signal [1/10s].
@@ -105,11 +105,11 @@ Open control is time of control for opened door [1/10s]). Close control is time 
 </td>
 <td style="width: 33.3333%; height: 18px;">
 <label for="{forms[3]}_card">Card number in HEX:</label>
-<input type="text" name="{forms[3]}_card" value="123456789ABC" form="{forms[3]}_{sn}"><br>
+<input type="text" id="{forms[3]}_card" name="{forms[3]}_card" value="123456789ABC" form="{forms[3]}_{sn}"><br>
 <label for="{forms[3]}_flags">Flags:</label>
-<input type="text" name="{forms[3]}_flags" value="0" form="{forms[3]}_{sn}"><br>
+<input type="text" id="{forms[3]}_flags" name="{forms[3]}_flags" value="0" form="{forms[3]}_{sn}"><br>
 <label for="{forms[3]}_tz">Time zone:</label>
-<input type="text" name="{forms[3]}_tz" value="255" form="{forms[3]}_{sn}">
+<input type="text" id="{forms[3]}_tz" name="{forms[3]}_tz" value="255" form="{forms[3]}_{sn}">
 </td>
 <td style="width: 33.3333%; height: 18px;">
 Add cards into a controller memory. Already stored cards are overwritten with new flags and tz parameters.
@@ -126,7 +126,7 @@ Time zone - time zone for the card.
 </td>
 <td style="width: 33.3333%; height: 18px;">
 <label for="{forms[4]}_card">Card number in HEX:</label>
-<input type="text" name="{forms[4]}_card" value="123456789ABC" form="{forms[4]}_{sn}">
+<input type="text" id="{forms[4]}_card" name="{forms[4]}_card" value="123456789ABC" form="{forms[4]}_{sn}">
 </td>
 <td style="width: 33.3333%; height: 18px;">
 Delete card from a controller memory. Card number must be in HEX and contain 12 symbols (6 bytes).
@@ -164,8 +164,10 @@ Delete all cards stored in controller memory.
 
 def get_page(controllers_dict):
     head = """
-<html>
+<!DOCTYPE html>.
+<html lang="en">
 <head>
+<title>Z5R control</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 .collapsible {
