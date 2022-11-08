@@ -48,7 +48,7 @@ def _per_controller_page(sn):
 
     # Table start
     answer += """
-<table style="border-collapse: collapse; width: 100%; height: 108px;" border="1">
+<table style="width: 100%; height: 108px;">
 <tbody>"""
 
     answer += f"""
@@ -57,8 +57,8 @@ def _per_controller_page(sn):
 <button name="action" type="submit" value="{forms[0]}" form="{forms[0]}_{sn}">Open door</button>
 </td>
 <td style="width: 33.3333%; height: 18px;">
-<label for="{forms[0]}_direction">Direction:</label>
-<input type="text" id="{forms[0]}_direction" name="{forms[0]}_direction" value="0" form="{forms[0]}_{sn}">
+<label for="{forms[0]}_direction_{sn}">Direction:</label>
+<input type="text" id="{forms[0]}_direction_{sn}" name="{forms[0]}_direction" value="0" form="{forms[0]}_{sn}">
 </td>
 <td style="width: 33.3333%; height: 18px;">
 Opens the door. Direction 0 is for entrance. Direction 1 is for exit.
@@ -71,8 +71,8 @@ Opens the door. Direction 0 is for entrance. Direction 1 is for exit.
 <button name="action" type="submit" value="{forms[1]}" form="{forms[1]}_{sn}">Set mode</button>
 </td>
 <td style="width: 33.3333%; height: 18px;">
-<label for="{forms[1]}_mode">Mode:</label>
-<input type="text" id="{forms[1]}_mode" name="{forms[1]}_mode" value="0" form="{forms[1]}_{sn}">
+<label for="{forms[1]}_mode_{sn}">Mode:</label>
+<input type="text" id="{forms[1]}_mode_{sn}" name="{forms[1]}_mode" value="0" form="{forms[1]}_{sn}">
 </td>
 <td style="width: 33.3333%; height: 18px;">
 Sets controller mode: 0 - normal, 1 - block, 2 - free passage, 3 - waiting for free passage.
@@ -85,12 +85,12 @@ Sets controller mode: 0 - normal, 1 - block, 2 - free passage, 3 - waiting for f
 <button name="action" type="submit" value="{forms[2]}" form="{forms[2]}_{sn}">Set door params</button>
 </td>
 <td style="width: 33.3333%; height: 18px;">
-<label for="{forms[2]}_open">Open:</label>
-<input type="text" id="{forms[2]}_open" name="{forms[2]}_open" value="30" form="{forms[2]}_{sn}"><br>
-<label for="{forms[2]}_open_control">Open control:</label>
-<input type="text" id="{forms[2]}_open_control" name="{forms[2]}_open_control" value="50" form="{forms[2]}_{sn}"><br>
-<label for="{forms[2]}_close_control">Close control:</label>
-<input type="text" id="{forms[2]}_close_control" name="{forms[2]}_close_control" value="50" form="{forms[2]}_{sn}">
+<label for="{forms[2]}_open_{sn}">Open:</label>
+<input type="text" id="{forms[2]}_open_{sn}" name="{forms[2]}_open" value="30" form="{forms[2]}_{sn}"><br>
+<label for="{forms[2]}_open_control_{sn}">Open control:</label>
+<input type="text" id="{forms[2]}_open_control_{sn}" name="{forms[2]}_open_control" value="50" form="{forms[2]}_{sn}"><br>
+<label for="{forms[2]}_close_control_{sn}">Close control:</label>
+<input type="text" id="{forms[2]}_close_control_{sn}" name="{forms[2]}_close_control" value="50" form="{forms[2]}_{sn}">
 </td>
 <td style="width: 33.3333%; height: 18px;">
 Sets the time for opening and closing of the door. Open is time for opening door signal [1/10s].
@@ -104,12 +104,12 @@ Open control is time of control for opened door [1/10s]). Close control is time 
 <button name="action" type="submit" value="{forms[3]}" form="{forms[3]}_{sn}">Add cards</button>
 </td>
 <td style="width: 33.3333%; height: 18px;">
-<label for="{forms[3]}_card">Card number in HEX:</label>
-<input type="text" id="{forms[3]}_card" name="{forms[3]}_card" value="123456789ABC" form="{forms[3]}_{sn}"><br>
-<label for="{forms[3]}_flags">Flags:</label>
-<input type="text" id="{forms[3]}_flags" name="{forms[3]}_flags" value="0" form="{forms[3]}_{sn}"><br>
-<label for="{forms[3]}_tz">Time zone:</label>
-<input type="text" id="{forms[3]}_tz" name="{forms[3]}_tz" value="255" form="{forms[3]}_{sn}">
+<label for="{forms[3]}_card_{sn}">Card number in HEX:</label>
+<input type="text" id="{forms[3]}_card_{sn}" name="{forms[3]}_card" value="123456789ABC" form="{forms[3]}_{sn}"><br>
+<label for="{forms[3]}_flags_{sn}">Flags:</label>
+<input type="text" id="{forms[3]}_flags_{sn}" name="{forms[3]}_flags" value="0" form="{forms[3]}_{sn}"><br>
+<label for="{forms[3]}_tz_{sn}">Time zone:</label>
+<input type="text" id="{forms[3]}_tz_{sn}" name="{forms[3]}_tz" value="255" form="{forms[3]}_{sn}">
 </td>
 <td style="width: 33.3333%; height: 18px;">
 Add cards into a controller memory. Already stored cards are overwritten with new flags and tz parameters.
@@ -125,8 +125,8 @@ Time zone - time zone for the card.
 <button name="action" type="submit" value="{forms[4]}" form="{forms[4]}_{sn}">Delete cards</button>
 </td>
 <td style="width: 33.3333%; height: 18px;">
-<label for="{forms[4]}_card">Card number in HEX:</label>
-<input type="text" id="{forms[4]}_card" name="{forms[4]}_card" value="123456789ABC" form="{forms[4]}_{sn}">
+<label for="{forms[4]}_card_{sn}">Card number in HEX:</label>
+<input type="text" id="{forms[4]}_card_{sn}" name="{forms[4]}_card" value="123456789ABC" form="{forms[4]}_{sn}">
 </td>
 <td style="width: 33.3333%; height: 18px;">
 Delete card from a controller memory. Card number must be in HEX and contain 12 symbols (6 bytes).
@@ -192,6 +192,11 @@ def get_page(controllers_dict):
   display: none;
   overflow: hidden;
   background-color: #f1f1f1;
+}
+
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
 }
 </style>
 </head>
