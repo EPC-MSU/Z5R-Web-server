@@ -1,6 +1,7 @@
 import logging
 import sqlite3
 
+
 def action_handler(query, controllers_dict):
     try:
         _ = controllers_dict[int(query['sn'][0])]
@@ -150,9 +151,12 @@ Delete all cards stored in controller memory.
 </table>
 <button type="button" class="collapsible">View events</button>
 <div class="content">
-  <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore
-  magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-  consequat.</p>
+"""
+    con = sqlite3.connect('service_data/{}_events.db'.format(sn))
+    cur = con.cursor()
+    for row in cur.execute('SELECT time, card, event_name FROM events ORDER BY time'):
+        answer += '<p>At {} card {} event {}</p>'.format(row[0], row[1], row[2])
+    answer += """
 </div>
 """
     return answer
