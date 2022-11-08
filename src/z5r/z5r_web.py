@@ -70,8 +70,8 @@ class Z5RWebController:
         self.con = sqlite3.connect('service_data/{}_events.db'.format(sn))
         # Check that this database is valid
         cur = self.con.cursor()
-        res = cur.execute('SELECT name FROM sqlite_master')
-        if 'events' not in res.fetchone():
+        res = cur.execute('SELECT name FROM sqlite_master WHERE "name"="events"')
+        if res.fetchone() is None:
             cur.execute('CREATE TABLE events(time, card, event_name, event_code, flags)')
 
     def __del__(self):
