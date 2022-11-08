@@ -125,3 +125,23 @@ class TestZ5RWebController(TestCase):
             assert (total_messages == 25)
         except Exception:
             self.assertTrue(False)
+
+    def test_open_door(self):
+        try:
+            z5r = Z5RWebController(0)
+            z5r.set_active()
+            msg = {'id': 358532290, 'operation': 'power_on', 'fw': '3.42',
+                   'conn_fw': '1.0.157', 'active': 0, 'mode': 0,
+                   'controller_ip': '172.16.130.233',
+                   'reader_protocol': 'wiegand'}
+            z5r.power_on_handler(msg, 358532290)
+            z5r.get_messages()  # Clear message queue
+            z5r.open_door(0)
+            msg = {'id': 1126273268, 'operation': 'ping', 'active': 1, 'mode': 0}
+            z5r.ping_handler(msg, 1126273268)
+            response = z5r.get_messages()[0]  # First message should be the response
+            assert ('id' in response)
+            assert (response['operation'] == 'open_door')
+            assert ('direction' in response)
+        except Exception:
+            self.assertTrue(False)

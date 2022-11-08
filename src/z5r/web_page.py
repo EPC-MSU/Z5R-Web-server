@@ -13,7 +13,12 @@ def action_handler(query, controllers_dict):
         logging.error(e)
         return
     if query['action'][0] == 'open_door':
-        pass
+        try:
+            cnt = controllers_dict[int(query['sn'][0])]
+        except KeyError as e:
+            logging.error('Serial number not found. {}'.format(e))
+            return
+        cnt.open_door(int(query['open_door_direction'][0]))
     elif query['action'][0] == 'set_mode':
         pass
     elif query['action'][0] == 'set_door_params':
