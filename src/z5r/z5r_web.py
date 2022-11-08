@@ -145,7 +145,7 @@ class Z5RWebController:
 
             # Write events to separate log file
             if card != '000000000000':
-                self.event_file.write('time {} card {} event "{}" flag {}.'.format(
+                self.event_file.write('time {} card {} event "{}" flag {}.\n'.format(
                     event_time, card, event_names[event_type], flag))
 
         message = {'id': req_id,
