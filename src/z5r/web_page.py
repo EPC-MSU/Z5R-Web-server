@@ -164,7 +164,7 @@ Delete all cards stored in controller memory.
             'SELECT time, card, event_name FROM events WHERE time > {} AND time < {} ORDER BY time'.format(
                 int(days[day].timestamp()), int(days[day + 1].timestamp())
             ))
-        if res is None:
+        if cur.rowcount == 0:
             continue
         answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))
         answer += '<div class="content">'
