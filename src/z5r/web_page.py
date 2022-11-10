@@ -1,5 +1,7 @@
 import logging
 import sqlite3
+from datetime import datetime
+from datetime import timedelta
 
 
 def action_handler(query, controllers_dict):
@@ -88,7 +90,8 @@ Sets controller mode: 0 - normal, 1 - block, 2 - free passage, 3 - waiting for f
 <label for="{forms[2]}_open_{sn}">Open:</label>
 <input type="text" id="{forms[2]}_open_{sn}" name="{forms[2]}_open" value="30" form="{forms[2]}_{sn}"><br>
 <label for="{forms[2]}_open_control_{sn}">Open control:</label>
-<input type="text" id="{forms[2]}_open_control_{sn}" name="{forms[2]}_open_control" value="50" form="{forms[2]}_{sn}"><br>
+<input type="text" id="{forms[2]}_open_control_{sn}" name="{forms[2]}_open_control" value="50" form="{forms[2]}_{sn}">
+<br>
 <label for="{forms[2]}_close_control_{sn}">Close control:</label>
 <input type="text" id="{forms[2]}_close_control_{sn}" name="{forms[2]}_close_control" value="50" form="{forms[2]}_{sn}">
 </td>
@@ -148,17 +151,25 @@ Delete all cards stored in controller memory.
     # Table end
     answer += """
 </tbody>
-</table>
-<button type="button" class="collapsible">View events</button>
-<div class="content">
-"""
-    con = sqlite3.connect('service_data/{}_events.db'.format(sn))
-    cur = con.cursor()
-    for row in cur.execute('SELECT time, card, event_name FROM events ORDER BY time'):
-        answer += '<p>At {} card {} event {}</p>'.format(row[0], row[1], row[2])
-    answer += """
-</div>
-"""
+</table>"""
+
+    # Start event collapsible view
+    DAY_TO_SHOW = 7
+    today_end = datetime.now().date() + timedelta(1)  # The end of this day
+    days = [datetime(today_end.year, today_end.month, today_end.day) - timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
+    for day in range(0, DAY_TO_SHOW + 1):
+        answer += '<button type="button" class="collapsible">{}</button>'.format(
+            days[DAY_TO_SHOW + 1 - day].strftime('%d %b')
+        )
+        answer += '<div class="content">'
+        con = sqlite3.connect('service_data/{}_events.db'.format(sn))
+        cur = con.cursor()
+        for row in cur.execute(
+            'SELECT time, card, event_name FROM events WHERE time > {} AND time < {} ORDER BY time'.format(
+                int(days[day + 1].timestamp()), int(days[day].timestamp())
+                )):
+            answer += '<p>At {} card {} event {}</p>'.format(row[0], row[1], row[2])
+        answer += '</div>'
     return answer
 
 
