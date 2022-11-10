@@ -155,20 +155,23 @@ Delete all cards stored in controller memory.
 
     # Start event collapsible view
     DAY_TO_SHOW = 7
-    today_end = datetime.now().date() + timedelta(1)  # The end of this day
-    days = [datetime(today_end.year, today_end.month, today_end.day) - timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
+    start = datetime.now().date() - timedelta(DAY_TO_SHOW)  # The end of this day
+    days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
+    con = sqlite3.connect('service_data/{}_events.db'.format(sn))
     for day in range(0, DAY_TO_SHOW + 1):
-        answer += '<button type="button" class="collapsible">{}</button>'.format(
-            days[DAY_TO_SHOW + 1 - day].strftime('%d %b')
-        )
-        answer += '<div class="content">'
-        con = sqlite3.connect('service_data/{}_events.db'.format(sn))
         cur = con.cursor()
-        for row in cur.execute(
+        res = cur.execute(
             'SELECT time, card, event_name FROM events WHERE time > {} AND time < {} ORDER BY time'.format(
-                int(days[day + 1].timestamp()), int(days[day].timestamp())
-                )):
-            answer += '<p>At {} card {} event {}</p>'.format(row[0], row[1], row[2])
+                int(days[day].timestamp()), int(days[day + 1].timestamp())
+            ))
+        if res is None:
+            continue
+        answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))
+        answer += '<div class="content">'
+        for row in res:
+            answer += '<p>At {} card {} event {}</p>'.format(
+                datetime.fromtimestamp(int(row[0])).strftime('%H:%M:%S'), row[1], row[2]
+            )
         answer += '</div>'
     return answer
 
