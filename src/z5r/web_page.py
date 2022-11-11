@@ -109,7 +109,7 @@ def get_attendance_page(controllers_dict):
     DAY_TO_SHOW = 5
     start = datetime.now().date() - timedelta(DAY_TO_SHOW)  # The end of this day
     days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
-    databases = ['service_data/{}_events.db'.format(cnt['sn']) for cnt in controllers_dict]
+    databases = ['service_data/{}_events.db'.format(sn) for sn in controllers_dict]
     for day in range(0, DAY_TO_SHOW + 1):
         res = _get_events_by_date(databases, days[day], days[day + 1], card_filter=True)
         if len(res) == 0:
