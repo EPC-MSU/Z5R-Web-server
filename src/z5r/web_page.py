@@ -170,7 +170,7 @@ Delete all cards stored in controller memory.
         answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))
         answer += '<div class="content">'
         for row in res:
-            answer += '<p>At {} card {} event {}</p>'.format(
+            answer += '<div>At {} card {} event {}</div>'.format(
                 datetime.fromtimestamp(int(row[0])).strftime('%H:%M:%S'), row[1], row[2]
             )
         answer += '</div>'
@@ -190,9 +190,9 @@ def get_page(controllers_dict):
   background-color: #777;
   color: white;
   cursor: pointer;
-  padding: 18px;
+  padding: 5px;
   width: 100%;
-  border: none;
+  border: 2px solid #888;
   text-align: left;
   outline: none;
   font-size: 15px;
@@ -203,7 +203,7 @@ def get_page(controllers_dict):
 }
 
 .content {
-  padding: 0 18px;
+  padding: 0 5px;
   display: none;
   overflow: hidden;
   background-color: #f1f1f1;
@@ -212,6 +212,10 @@ def get_page(controllers_dict):
 table, th, td {
   border: 1px solid black;
   border-collapse: collapse;
+}
+
+div {
+  padding: 5px;
 }
 </style>
 </head>
