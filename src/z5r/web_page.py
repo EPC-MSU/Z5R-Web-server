@@ -154,17 +154,18 @@ Delete all cards stored in controller memory.
 </table>"""
 
     # Start event collapsible view
-    DAY_TO_SHOW = 7
+    DAY_TO_SHOW = 5
     start = datetime.now().date() - timedelta(DAY_TO_SHOW)  # The end of this day
     days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
     con = sqlite3.connect('service_data/{}_events.db'.format(sn))
     for day in range(0, DAY_TO_SHOW + 1):
         cur = con.cursor()
-        res = cur.execute(
+        cur.execute(
             'SELECT time, card, event_name FROM events WHERE time > {} AND time < {} ORDER BY time'.format(
                 int(days[day].timestamp()), int(days[day + 1].timestamp())
             ))
-        if cur.rowcount == 0:
+        res = cur.fetchall()
+        if len(res) == 0:
             continue
         answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))
         answer += '<div class="content">'
