@@ -117,14 +117,14 @@ def get_attendance_page(controllers_dict):
 
         def split_first_last(events_list):
             card_events = dict()
-            for event in events_list:
-                if event[0] not in card_events:  # New card in list
-                    card_events[event[0]] = [event[1], event[1]]  # Write it as start and end
+            for event in events_list:  # event is [time, card, event_name]
+                if event[1] not in card_events:  # New card in list
+                    card_events[event[1]] = [event[0], event[0]]  # Write it as start and end
                 else:
-                    if event[1] < card_events[event[0]][0]:  # If time of event is earlier than start
-                        card_events[event[0]][0] = event[1]  # Write it as start time
-                    if event[1] > card_events[event[0]][1]:  # If time of event is later than end
-                        card_events[event[0]][1] = event[1]  # Write it as end time
+                    if event[0] < card_events[event[1]][0]:  # If time of event is earlier than start
+                        card_events[event[1]][0] = event[0]  # Write it as start time
+                    if event[0] > card_events[event[1]][1]:  # If time of event is later than end
+                        card_events[event[1]][1] = event[0]  # Write it as end time
             return card_events
 
         work_periods = split_first_last(res)
