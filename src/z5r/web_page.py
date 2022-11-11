@@ -104,8 +104,47 @@ def get_attendance_page(controllers_dict):
     </html>
     """
     answer = head
+
+    # Start event collapsible view
+    DAY_TO_SHOW = 5
+    start = datetime.now().date() - timedelta(DAY_TO_SHOW)  # The end of this day
+    days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
+    databases = ['service_data/{}_events.db'.format(cnt['sn']) for cnt in controllers_dict]
+    for day in range(0, DAY_TO_SHOW + 1):
+        res = _get_events_by_date(databases, days[day], days[day + 1], card_filter=True)
+        if len(res) == 0:
+            continue
+        answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))
+        answer += '<div class="content">'
+        for row in res:
+            answer += '<div>At {} card {} event {}</div>'.format(
+                datetime.fromtimestamp(int(row[0])).strftime('%H:%M:%S'), row[1], row[2]
+            )
+        answer += '</div>'
+
     answer += tail
     return answer
+
+
+def _get_events_by_date(databases, start_datetime, end_datetime, card_filter=False):
+    if card_filter:
+        sql_flt = ' AND card != "000000000000"'
+    else:
+        sql_flt = ''
+    res_cat = list()
+    for dbname in databases:
+        con = sqlite3.connect(dbname)
+        cur = con.cursor()
+        cur.execute(
+            'SELECT time, card, event_name FROM events WHERE time > {} AND time < {}{} ORDER BY time'.format(
+                int(start_datetime.timestamp()), int(end_datetime.timestamp()), sql_flt
+            ))
+        res = cur.fetchall()
+        if len(res) == 0:
+            continue
+        res_cat += res
+
+    return res_cat
 
 
 def _per_controller_page(sn):
