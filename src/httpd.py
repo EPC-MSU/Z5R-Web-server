@@ -43,7 +43,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         elif self.headers.get('Authorization') == 'Basic ' + self._auth:
             # Parse and process parameters in URL
             parsed = urlparse(self.path)
-            if parsed == '/':
+            if parsed.path == '/' or parsed.path == '':
                 z5r.action_handler(parse_qs(parsed.query), z5r_dict)
                 self.do_HEAD()
             else:
