@@ -127,13 +127,21 @@ def get_attendance_page(controllers_dict):
                         card_events[event[1]][1] = event[0]  # Write it as end time
             return card_events
 
+        def em_marine(card_hex):
+            if len(card_hex) != 12:
+                return 'N/A'
+            if card_hex[0:6] != '000000':
+                return 'N/A'
+            return '{},{:05}'.format(int(card_hex[6:8], base=16), int(card_hex[8:12], base=16))
+
         work_periods = split_first_last(res)
         answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))
         answer += '<table class="content">'
-        answer += '<tr><td>Card</td><td>First event</td><td>Last event</td></tr>'
+        answer += '<tr><td>Card HEX</td><td>Card Em-Marine</td><td>First event</td><td>Last event</td></tr>'
         for card in work_periods:
-            answer += '<tr><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
+            answer += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
                 card,
+                em_marine(card),
                 datetime.fromtimestamp(int(work_periods[card][0])).strftime('%H:%M:%S'),
                 datetime.fromtimestamp(int(work_periods[card][1])).strftime('%H:%M:%S')
             )
