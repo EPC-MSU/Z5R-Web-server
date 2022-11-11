@@ -130,9 +130,9 @@ def get_attendance_page(controllers_dict):
         work_periods = split_first_last(res)
         answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))
         answer += '<table class="content">'
-        answer += '<tr><td>Card</td><td>First event</td>td>Last event</td></tr>'
+        answer += '<tr><td>Card</td><td>First event</td><td>Last event</td></tr>'
         for card in work_periods:
-            answer += '<tr><td>Card {} start {} end {}</td></tr>'.format(
+            answer += '<tr><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
                 card,
                 datetime.fromtimestamp(int(work_periods[card][0])).strftime('%H:%M:%S'),
                 datetime.fromtimestamp(int(work_periods[card][1])).strftime('%H:%M:%S')
