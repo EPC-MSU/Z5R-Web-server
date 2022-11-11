@@ -114,13 +114,30 @@ def get_attendance_page(controllers_dict):
         res = _get_events_by_date(databases, days[day], days[day + 1], card_filter=True)
         if len(res) == 0:
             continue
+
+        def split_first_last(events_list):
+            card_events = dict()
+            for event in events_list:
+                if event[0] not in card_events:  # New card in list
+                    card_events[event[0]]([event[1], event[1]])  # Write it as start and end
+                else:
+                    if event[1] < card_events[event[0]][0]:  # If time of event is earlier than start
+                        card_events[event[0]][0] = event[1]  # Write it as start time
+                    if event[1] > card_events[event[0]][1]:  # If time of event is later than end
+                        card_events[event[0]][1] = event[1]  # Write it as end time
+            return card_events
+
+        work_periods = split_first_last(res)
         answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))
-        answer += '<div class="content">'
-        for row in res:
-            answer += '<div>At {} card {} event {}</div>'.format(
-                datetime.fromtimestamp(int(row[0])).strftime('%H:%M:%S'), row[1], row[2]
+        answer += '<table class="content">'
+        answer += '<tr><td>Card</td><td>First event</td>td>Last event</td></tr>'
+        for card in work_periods:
+            answer += '<tr><td>Card {} start {} end {}</td></tr>'.format(
+                card,
+                datetime.fromtimestamp(int(work_periods[card][0])).strftime('%H:%M:%S'),
+                datetime.fromtimestamp(int(work_periods[card][1])).strftime('%H:%M:%S')
             )
-        answer += '</div>'
+        answer += '</table>'
 
     answer += tail
     return answer
@@ -268,14 +285,8 @@ Delete all cards stored in controller memory.
     DAY_TO_SHOW = 5
     start = datetime.now().date() - timedelta(DAY_TO_SHOW)  # The end of this day
     days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
-    con = sqlite3.connect('service_data/{}_events.db'.format(sn))
     for day in range(0, DAY_TO_SHOW + 1):
-        cur = con.cursor()
-        cur.execute(
-            'SELECT time, card, event_name FROM events WHERE time > {} AND time < {} ORDER BY time'.format(
-                int(days[day].timestamp()), int(days[day + 1].timestamp())
-            ))
-        res = cur.fetchall()
+        res = _get_events_by_date(['service_data/{}_events.db'.format(sn)], days[day], days[day + 1])
         if len(res) == 0:
             continue
         answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))
