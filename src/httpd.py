@@ -41,19 +41,23 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             self.do_AUTHHEAD()
             self.wfile.write(b'no auth header received')
         elif self.headers.get('Authorization') == 'Basic ' + self._auth:
+            answer = ''
             # Parse and process parameters in URL
             parsed = urlparse(self.path)
             if parsed.path == '/' or parsed.path == '':
+                # Handle an action if any
                 z5r.action_handler(parse_qs(parsed.query), z5r_dict)
-                self.do_HEAD()
+                # Display control page
+                answer += z5r.get_page(z5r_dict)
+            elif parsed.path == '/attendance':
+                answer += z5r.get_attendance(z5r_dict)
             else:
                 self.send_error(404, 'Not found')
                 self.end_headers()
                 return
 
-            # Display control page
-            answer = z5r.get_page(z5r_dict).encode('utf-8')
-            self.wfile.write(answer)
+            self.do_HEAD()
+            self.wfile.write(answer.encode('utf-8'))
         else:
             self.do_AUTHHEAD()
             self.wfile.write(self.headers.get('Authorization').encode('utf-8'))
