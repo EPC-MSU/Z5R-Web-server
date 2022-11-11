@@ -8,6 +8,7 @@ import ssl  # noqa
 import logging
 import z5r
 import base64
+import os
 from urllib.parse import urlparse, parse_qs
 
 
@@ -16,11 +17,12 @@ TCP_PORT = 8080
 
 
 z5r_dict = dict()
+auth = ''
 
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
-        self._auth = base64.b64encode('zap:pass'.encode()).decode()
+        self._auth = base64.b64encode(auth.encode()).decode()
         super().__init__(*args, **kwargs)
 
     def do_HEAD(self):  # noqa
@@ -30,7 +32,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
     def do_AUTHHEAD(self):  # noqa
         self.send_response(401)
-        self.send_header('WWW-Authenticate', 'Basic realm="Test"')
+        self.send_header('WWW-Authenticate', 'Basic realm="Z5R Web control page"')
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
@@ -39,9 +41,16 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             self.do_AUTHHEAD()
             self.wfile.write(b'no auth header received')
         elif self.headers.get('Authorization') == 'Basic ' + self._auth:
-            self.do_HEAD()
             # Parse and process parameters in URL
-            z5r.action_handler(parse_qs(urlparse(self.path).query), z5r_dict)
+            parsed = urlparse(self.path)
+            if parsed == '/':
+                z5r.action_handler(parse_qs(parsed.query), z5r_dict)
+                self.do_HEAD()
+            else:
+                self.send_error(404, 'Not found')
+                self.end_headers()
+                return
+
             # Display control page
             answer = z5r.get_page(z5r_dict).encode('utf-8')
             self.wfile.write(answer)
@@ -143,6 +152,20 @@ def run():
               'If you want to run outside of a container then run python from the root folder like this:\n'
               'python3 src/httpd.py')
         exit(1)
+
+    # Check and prepare service data folder
+    if not os.path.isdir('service_data'):
+        os.mkdir('service_data', 0o777)
+    # Check and prepare auth file
+    if not os.path.isfile('service_data/auth'):
+        auth_file = open('service_data/auth', 'w')
+        auth_file.write('z5r:im_mellon')
+        auth_file.close()
+
+    auth_file = open('service_data/auth', 'r')
+    global auth
+    auth = auth_file.read()
+    auth_file.close()
 
     logging.info('http server is starting...')
     server_address = ('0.0.0.0', TCP_PORT)
