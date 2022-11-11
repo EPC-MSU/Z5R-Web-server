@@ -119,7 +119,7 @@ def get_attendance_page(controllers_dict):
             card_events = dict()
             for event in events_list:
                 if event[0] not in card_events:  # New card in list
-                    card_events[event[0]]([event[1], event[1]])  # Write it as start and end
+                    card_events[event[0]] = [event[1], event[1]]  # Write it as start and end
                 else:
                     if event[1] < card_events[event[0]][0]:  # If time of event is earlier than start
                         card_events[event[0]][0] = event[1]  # Write it as start time
