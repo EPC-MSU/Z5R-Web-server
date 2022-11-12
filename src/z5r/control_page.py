@@ -1,5 +1,5 @@
 import logging
-from common import get_events_by_date
+from .common import get_events_by_date
 from datetime import datetime
 from datetime import timedelta
 

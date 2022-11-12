@@ -1,6 +1,6 @@
 from datetime import datetime
 from datetime import timedelta
-from common import get_events_by_date
+from .common import get_events_by_date
 
 
 DAY_TO_SHOW = 5
