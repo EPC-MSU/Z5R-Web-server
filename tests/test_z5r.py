@@ -90,7 +90,7 @@ class TestZ5RWebController(TestCase):
                    'reader_protocol': 'wiegand'}
             z5r.power_on_handler(msg, 358532290)
             z5r.get_messages()  # Clear message queue
-            z5r.add_card('00B5009EC1A8')
+            z5r.add_card('00B5009EC1A8', 0, 255)
             response = z5r.get_messages()[0]  # First message should be the response
             assert (response['cards'][0]['card'] == '00B5009EC1A8')
             assert ('flags' in response['cards'][0])
@@ -112,7 +112,7 @@ class TestZ5RWebController(TestCase):
             z5r.power_on_handler(msg, 358532290)
             z5r.get_messages()  # Clear message queue
             for i in range(0, 25):
-                z5r.add_card(binascii.hexlify(os.urandom(6)).decode())
+                z5r.add_card(binascii.hexlify(os.urandom(6)).decode(), 0, 255)
             total_messages = 0
             while True:
                 response = z5r.get_messages(1000)
@@ -145,5 +145,27 @@ class TestZ5RWebController(TestCase):
             assert ('id' in response)
             assert (response['operation'] == 'open_door')
             assert ('direction' in response)
+        except Exception:
+            self.assertTrue(False)
+
+    def test_set_door_params(self):
+        try:
+            z5r = Z5RWebController(0)
+            z5r.set_active()
+            msg = {'id': 358532290, 'operation': 'power_on', 'fw': '3.42',
+                   'conn_fw': '1.0.157', 'active': 0, 'mode': 0,
+                   'controller_ip': '172.16.130.233',
+                   'reader_protocol': 'wiegand'}
+            z5r.power_on_handler(msg, 358532290)
+            z5r.get_messages()  # Clear message queue
+            z5r.set_door_params(10, 30, '50')
+            msg = {'id': 1126273268, 'operation': 'ping', 'active': 1, 'mode': 0}
+            z5r.ping_handler(msg, 1126273268)
+            response = z5r.get_messages()[0]  # First message should be the response
+            assert ('id' in response)
+            assert (response['operation'] == 'set_door_params')
+            assert ('open' in response)
+            assert ('open_control' in response)
+            assert ('close_control' in response)
         except Exception:
             self.assertTrue(False)

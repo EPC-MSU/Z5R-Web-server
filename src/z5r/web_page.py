@@ -4,34 +4,52 @@ from datetime import datetime
 from datetime import timedelta
 
 
+DAY_TO_SHOW = 5
+
+
 def action_handler(query, controllers_dict):
-    try:
-        _ = controllers_dict[int(query['sn'][0])]
-    except ValueError:
-        logging.error('Could not resolve a designated controller from query.')
-        return
-    except KeyError:  # There is no action
-        return
-    except TypeError as e:
+    try:  # Get main query parameters
+        cnt = controllers_dict[int(query['sn'][0])]
+        action = query['action'][0]
+    except (ValueError, KeyError, TypeError) as e:
         logging.error(e)
         return
-    if query['action'][0] == 'open_door':
+
+    if action == 'open_door':
         try:
-            cnt = controllers_dict[int(query['sn'][0])]
-        except KeyError as e:
-            logging.error('Serial number not found. {}'.format(e))
-            return
-        cnt.open_door(int(query['open_door_direction'][0]))
+            cnt.open_door(int(query['open_door_direction'][0]))
+        except (ValueError, KeyError, TypeError) as e:
+            logging.error(e)
     elif query['action'][0] == 'set_mode':
-        pass
-    elif query['action'][0] == 'set_door_params':
-        pass
-    elif query['action'][0] == 'add_cards':
-        pass
-    elif query['action'][0] == 'del_cards':
-        pass
-    elif query['action'][0] == 'clear_cards':
-        pass
+        try:
+            cnt.open_door(int(query['set_mode_mode'][0]))
+        except (ValueError, KeyError, TypeError) as e:
+            logging.error(e)
+    elif action == 'set_door_params':
+        try:
+            cnt.set_door_params(
+                query['set_door_params_open'][0],
+                query['set_door_params_open_control'][0],
+                query['set_door_params_close_control'][0]
+            )
+        except (ValueError, KeyError, TypeError) as e:
+            logging.error(e)
+    elif action == 'add_cards':
+        try:
+            cnt.add_card(
+                query['add_cards_card'][0],
+                query['add_cards_flags'][0],
+                query['add_cards_tz'][0],
+            )
+        except (ValueError, KeyError, TypeError) as e:
+            logging.error(e)
+    elif action == 'del_cards':
+        try:
+            cnt.del_card(query['del_cards_card'][0])
+        except (ValueError, KeyError, TypeError) as e:
+            logging.error(e)
+    elif action == 'clear_cards':
+        cnt.clear_cards()
     else:
         logging.error('Unknown action.')
 
@@ -106,7 +124,6 @@ def get_attendance_page(controllers_dict):
     answer = head
 
     # Start event collapsible view
-    DAY_TO_SHOW = 5
     start = datetime.now().date() - timedelta(DAY_TO_SHOW)  # The end of this day
     days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
     databases = ['service_data/{}_events.db'.format(sn) for sn in controllers_dict]
@@ -290,7 +307,6 @@ Delete all cards stored in controller memory.
 </table>"""
 
     # Start event collapsible view
-    DAY_TO_SHOW = 5
     start = datetime.now().date() - timedelta(DAY_TO_SHOW)  # The end of this day
     days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
     for day in range(0, DAY_TO_SHOW + 1):

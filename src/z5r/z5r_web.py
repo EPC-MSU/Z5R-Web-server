@@ -171,6 +171,13 @@ class Z5RWebController:
     def get_interval(self):
         return self.interval
 
+    def set_mode(self, mode):
+        message = {'id': self._generate_id(),
+                   'operation': 'set_mode',
+                   'mode': str(mode)
+                   }
+        self.out_pending.append(message)
+
     def open_door(self, direction):
         message = {'id': self._generate_id(),
                    'operation': 'open_door',
@@ -178,14 +185,14 @@ class Z5RWebController:
                    }
         self.out_pending.append(message)
 
-    def add_card(self, card):
+    def add_card(self, card, flags, tz):
         message = {'id': self._generate_id(),
                    'operation': 'add_cards',
                    'cards': [
                        {
-                           'card': card,
-                           'flags': 0,
-                           'tz': 255
+                           'card': str(card),
+                           'flags': str(flags),
+                           'tz': str(tz)
                        }
                    ]
                    }
@@ -209,18 +216,22 @@ class Z5RWebController:
         self.out_pending.append(message)
 
     def set_tz(self):
-        message = {'operation': 'set_timezone',
-                   'zone': 0,
-                   'begin': '00:00',
-                   'end': '23:59',
-                   'days': '11111110'
-                   }
+        message = {
+            'id': self._generate_id(),
+            'operation': 'set_timezone',
+            'zone': 0,
+            'begin': '00:00',
+            'end': '23:59',
+            'days': '11111110'
+        }
         self.out_pending.append(message)
 
-    def set_door(self):
-        message = {'operation': 'set_door_params',
-                   'open': 10,
-                   'open_control': 10,
-                   'close_control': 10
-                   }
+    def set_door_params(self, open_param=30, open_control=50, close_control=50):
+        message = {
+            'id': self._generate_id(),
+            'operation': 'set_door_params',
+            'open': str(open_param),
+            'open_control': str(open_control),
+            'close_control': str(close_control)
+        }
         self.out_pending.append(message)
