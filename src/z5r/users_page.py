@@ -70,5 +70,39 @@ def get_users_page(controllers_dict):
     </html>
     """
     answer = head
+
+    # Table start
+    answer += """
+    <form action="/users" id="users_form" method="get">
+    <table style="width: 100%; height: 108px;">
+    <tbody>"""
+
+    answer += f"""
+    <tr style="height: 18px;">
+    <td style="width: 33.3333%; height: 18px;">
+    <button name="action" type="submit" value="ttt">Set door params</button>
+    </td>
+    <td style="width: 33.3333%; height: 18px;">
+    <label for="ttt_open">Open:</label>
+    <input type="text" id="ttt_open" name="ttt_open" value="30"><br>
+    <label for="ttt_open_control">Open control:</label>
+    <input type="text" id="ttt_open_control" name="ttt_open_control" value="50">
+    <br>
+    <label for="ttt_close_control">Close control:</label>
+    <input type="text" id="ttt_close_control" name="ttt_close_control" value="50">
+    </td>
+    <td style="width: 33.3333%; height: 18px;">
+    Sets the time for opening and closing of the door. Open is time for opening door signal [1/10s].
+    Open control is time of control for opened door [1/10s]). Close control is time of control for closing door [1/10s].
+    </td>
+    </tr>"""
+
+
+    # Table end
+    answer += """
+    </tbody>
+    </table>
+    </form>"""
+
     answer += tail
     return answer
