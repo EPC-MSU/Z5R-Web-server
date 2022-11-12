@@ -1,4 +1,5 @@
 import sqlite3
+from .common import em_marine
 
 
 def users_handler(query, controllers_dict):
@@ -14,28 +15,6 @@ def get_users_page(controllers_dict):
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
     <style>
-    .collapsible {
-      background-color: #777;
-      color: white;
-      cursor: pointer;
-      padding: 5px;
-      width: 100%;
-      border: 2px solid #888;
-      text-align: left;
-      outline: none;
-      font-size: 15px;
-    }
-
-    .active, .collapsible:hover {
-      background-color: #555;
-    }
-
-    .content {
-      padding: 0 5px;
-      display: none;
-      overflow: hidden;
-      background-color: #f1f1f1;
-    }
 
     table, th, td {
       border: 1px solid black;
@@ -51,24 +30,6 @@ def get_users_page(controllers_dict):
     <h1 style="text-align: center;">Z5R-Web users page</h1>
     """
     tail = """
-
-    <script>
-    var coll = document.getElementsByClassName("collapsible");
-    var i;
-
-    for (i = 0; i < coll.length; i++) {
-      coll[i].addEventListener("click", function() {
-        this.classList.toggle("active");
-        var content = this.nextElementSibling;
-        if (content.style.display === "block") {
-          content.style.display = "none";
-        } else {
-          content.style.display = "block";
-        }
-      });
-    }
-    </script>
-
     </body>
     </html>
     """
@@ -77,8 +38,20 @@ def get_users_page(controllers_dict):
     # Table start
     answer += """
     <form action="/users" id="users_form" method="get">
+    <button name="action" type="submit" value="update_users">Update users</button>
     <table style="width: 100%; height: 108px;">
-    <tbody>"""
+    <tbody>
+    <tr>
+    <td>
+    Card HEX
+    </td>
+    <td>
+    Card Em-Marine
+    </td>
+    <td>
+    Name
+    </td>
+    """
 
     # Load all cards from databases
     databases = ['service_data/{}_events.db'.format(sn) for sn in controllers_dict]
@@ -93,10 +66,15 @@ def get_users_page(controllers_dict):
         cards += res
 
     for card in cards:
-        answer += """
-    <tr style="height: 18px;">
-    <td style="width: 33.3333%; height: 18px;">
-    <button name="action" type="submit" value="ttt">Set door params</button>
+        answer += f"""
+    <tr>
+    <td>
+    {card}
+    </td>
+    <td>
+    {em_marine(card)}
+    </td>
+    <td>
     <label for="ttt_open">Open:</label>
     <input type="text" id="ttt_open" name="ttt_open" value="30"><br>
     <label for="ttt_open_control">Open control:</label>
@@ -104,6 +82,7 @@ def get_users_page(controllers_dict):
     <br>
     <label for="ttt_close_control">Close control:</label>
     <input type="text" id="ttt_close_control" name="ttt_close_control" value="50">
+    </td>
     </tr>"""
 
     # Table end
