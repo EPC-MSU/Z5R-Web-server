@@ -3,7 +3,7 @@ from .common import em_marine
 
 
 def users_handler(query, controllers_dict):
-    pass
+    return query, controllers_dict
 
 
 def get_users_page(controllers_dict):
@@ -64,26 +64,27 @@ def get_users_page(controllers_dict):
         if len(res) == 0:
             continue
         cards += res
+    # Filter duplicates
+    seen = set()
+    cards = [x for x in cards if not (x in seen or seen.add(x))]
 
     for card in cards:
         answer += f"""
-    <tr>
-    <td>
-    {card}
-    </td>
-    <td>
-    {em_marine(card)}
-    </td>
-    <td>
-    <label for="ttt_open">Open:</label>
-    <input type="text" id="ttt_open" name="ttt_open" value="30"><br>
-    <label for="ttt_open_control">Open control:</label>
-    <input type="text" id="ttt_open_control" name="ttt_open_control" value="50">
-    <br>
-    <label for="ttt_close_control">Close control:</label>
-    <input type="text" id="ttt_close_control" name="ttt_close_control" value="50">
-    </td>
-    </tr>"""
+        <tr>
+        <td>
+        {card[0]}
+        </td>
+        <td>
+        {em_marine(card[0])}
+        </td>
+        <td>"""
+
+        answer += f"""
+        <label for="name_{card[0]}">Name:</label>
+        <input type="text" id="name_{card[0]}" name="name_{card[0]}" value="">"""
+
+        answer += """</td>
+        </tr>"""
 
     # Table end
     answer += """
