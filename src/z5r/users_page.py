@@ -1,3 +1,6 @@
+import sqlite3
+
+
 def users_handler(query, controllers_dict):
     pass
 
@@ -77,12 +80,23 @@ def get_users_page(controllers_dict):
     <table style="width: 100%; height: 108px;">
     <tbody>"""
 
-    answer += f"""
+    # Load all cards from databases
+    databases = ['service_data/{}_events.db'.format(sn) for sn in controllers_dict]
+    cards = list()
+    for dbname in databases:
+        con = sqlite3.connect(dbname)
+        cur = con.cursor()
+        cur.execute('SELECT DISTINCT card from events ORDER BY time')
+        res = cur.fetchall()
+        if len(res) == 0:
+            continue
+        cards += res
+
+    for card in cards:
+        answer += """
     <tr style="height: 18px;">
     <td style="width: 33.3333%; height: 18px;">
     <button name="action" type="submit" value="ttt">Set door params</button>
-    </td>
-    <td style="width: 33.3333%; height: 18px;">
     <label for="ttt_open">Open:</label>
     <input type="text" id="ttt_open" name="ttt_open" value="30"><br>
     <label for="ttt_open_control">Open control:</label>
@@ -90,13 +104,7 @@ def get_users_page(controllers_dict):
     <br>
     <label for="ttt_close_control">Close control:</label>
     <input type="text" id="ttt_close_control" name="ttt_close_control" value="50">
-    </td>
-    <td style="width: 33.3333%; height: 18px;">
-    Sets the time for opening and closing of the door. Open is time for opening door signal [1/10s].
-    Open control is time of control for opened door [1/10s]). Close control is time of control for closing door [1/10s].
-    </td>
     </tr>"""
-
 
     # Table end
     answer += """

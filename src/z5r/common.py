@@ -20,3 +20,11 @@ def get_events_by_date(databases, start_datetime, end_datetime, card_filter=Fals
         res_cat += res
 
     return res_cat
+
+
+def em_marine(card_hex):
+    if len(card_hex) != 12:
+        return 'N/A'
+    if card_hex[0:6] != '000000':
+        return 'N/A'
+    return '{},{:05}'.format(int(card_hex[6:8], base=16), int(card_hex[8:12], base=16))

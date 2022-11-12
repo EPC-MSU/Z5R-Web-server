@@ -1,6 +1,6 @@
 from datetime import datetime
 from datetime import timedelta
-from .common import get_events_by_date
+from .common import get_events_by_date, em_marine
 
 
 DAY_TO_SHOW = 5
@@ -95,13 +95,6 @@ def get_attendance_page(controllers_dict):
                     if event[0] > card_events[event[1]][1]:  # If time of event is later than end
                         card_events[event[1]][1] = event[0]  # Write it as end time
             return card_events
-
-        def em_marine(card_hex):
-            if len(card_hex) != 12:
-                return 'N/A'
-            if card_hex[0:6] != '000000':
-                return 'N/A'
-            return '{},{:05}'.format(int(card_hex[6:8], base=16), int(card_hex[8:12], base=16))
 
         work_periods = split_first_last(res)
         answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))
