@@ -1,5 +1,5 @@
 import logging
-import sqlite3
+from common import get_events_by_date
 from datetime import datetime
 from datetime import timedelta
 
@@ -14,65 +14,31 @@ def action_handler(query, controllers_dict):
     except (ValueError, KeyError, TypeError) as e:
         logging.error(e)
         return
-
-    if action == 'open_door':
-        try:
+    try:
+        if action == 'open_door':
             cnt.open_door(int(query['open_door_direction'][0]))
-        except (ValueError, KeyError, TypeError) as e:
-            logging.error(e)
-    elif query['action'][0] == 'set_mode':
-        try:
+        elif query['action'][0] == 'set_mode':
             cnt.open_door(int(query['set_mode_mode'][0]))
-        except (ValueError, KeyError, TypeError) as e:
-            logging.error(e)
-    elif action == 'set_door_params':
-        try:
+        elif action == 'set_door_params':
             cnt.set_door_params(
                 query['set_door_params_open'][0],
                 query['set_door_params_open_control'][0],
                 query['set_door_params_close_control'][0]
             )
-        except (ValueError, KeyError, TypeError) as e:
-            logging.error(e)
-    elif action == 'add_cards':
-        try:
+        elif action == 'add_cards':
             cnt.add_card(
                 query['add_cards_card'][0],
                 query['add_cards_flags'][0],
                 query['add_cards_tz'][0],
             )
-        except (ValueError, KeyError, TypeError) as e:
-            logging.error(e)
-    elif action == 'del_cards':
-        try:
+        elif action == 'del_cards':
             cnt.del_card(query['del_cards_card'][0])
-        except (ValueError, KeyError, TypeError) as e:
-            logging.error(e)
-    elif action == 'clear_cards':
-        cnt.clear_cards()
-    else:
-        logging.error('Unknown action.')
-
-
-def _get_events_by_date(databases, start_datetime, end_datetime, card_filter=False):
-    if card_filter:
-        sql_flt = ' AND card != "000000000000"'
-    else:
-        sql_flt = ''
-    res_cat = list()
-    for dbname in databases:
-        con = sqlite3.connect(dbname)
-        cur = con.cursor()
-        cur.execute(
-            'SELECT time, card, event_name FROM events WHERE time > {} AND time < {}{} ORDER BY time'.format(
-                int(start_datetime.timestamp()), int(end_datetime.timestamp()), sql_flt
-            ))
-        res = cur.fetchall()
-        if len(res) == 0:
-            continue
-        res_cat += res
-
-    return res_cat
+        elif action == 'clear_cards':
+            cnt.clear_cards()
+        else:
+            logging.error('Unknown action.')
+    except (ValueError, KeyError, TypeError) as e:
+        logging.error(e)
 
 
 def _per_controller_page(sn):
@@ -196,7 +162,7 @@ Delete all cards stored in controller memory.
     start = datetime.now().date() - timedelta(DAY_TO_SHOW)  # The end of this day
     days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
     for day in range(0, DAY_TO_SHOW + 1):
-        res = _get_events_by_date(['service_data/{}_events.db'.format(sn)], days[day], days[day + 1])
+        res = get_events_by_date(['service_data/{}_events.db'.format(sn)], days[day], days[day + 1])
         if len(res) == 0:
             continue
         answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))

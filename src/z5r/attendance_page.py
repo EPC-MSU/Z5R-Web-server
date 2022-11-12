@@ -1,30 +1,9 @@
 from datetime import datetime
 from datetime import timedelta
-import sqlite3
+from common import get_events_by_date
 
 
 DAY_TO_SHOW = 5
-
-
-def _get_events_by_date(databases, start_datetime, end_datetime, card_filter=False):
-    if card_filter:
-        sql_flt = ' AND card != "000000000000"'
-    else:
-        sql_flt = ''
-    res_cat = list()
-    for dbname in databases:
-        con = sqlite3.connect(dbname)
-        cur = con.cursor()
-        cur.execute(
-            'SELECT time, card, event_name FROM events WHERE time > {} AND time < {}{} ORDER BY time'.format(
-                int(start_datetime.timestamp()), int(end_datetime.timestamp()), sql_flt
-            ))
-        res = cur.fetchall()
-        if len(res) == 0:
-            continue
-        res_cat += res
-
-    return res_cat
 
 
 def get_attendance_page(controllers_dict):
@@ -101,7 +80,7 @@ def get_attendance_page(controllers_dict):
     days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
     databases = ['service_data/{}_events.db'.format(sn) for sn in controllers_dict]
     for day in range(0, DAY_TO_SHOW + 1):
-        res = _get_events_by_date(databases, days[day], days[day + 1], card_filter=True)
+        res = get_events_by_date(databases, days[day], days[day + 1], card_filter=True)
         if len(res) == 0:
             continue
 
