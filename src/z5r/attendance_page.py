@@ -1,6 +1,6 @@
 from datetime import datetime
 from datetime import timedelta
-from .common import get_events_by_date, em_marine
+from .common import get_events_by_date, em_marine, get_users_list
 
 
 DAY_TO_SHOW = 5
@@ -96,12 +96,25 @@ def get_attendance_page(controllers_dict):
                         card_events[event[1]][1] = event[0]  # Write it as end time
             return card_events
 
+        users_dict = get_users_list()
+
         work_periods = split_first_last(res)
         answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))
         answer += '<table class="content">'
-        answer += '<tr><td>Card HEX</td><td>Card Em-Marine</td><td>First event</td><td>Last event</td></tr>'
+        answer += """<tr>
+        <td>Name</td>
+        <td>Card HEX</td>
+        <td>Card Em-Marine</td>
+        <td>First event</td>
+        <td>Last event</td>
+        </tr>"""
         for card in work_periods:
-            answer += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
+            if card in users_dict:
+                name = users_dict[card]
+            else:
+                name = ''
+            answer += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
+                name,
                 card,
                 em_marine(card),
                 datetime.fromtimestamp(int(work_periods[card][0])).strftime('%H:%M:%S'),

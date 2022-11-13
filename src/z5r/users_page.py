@@ -1,5 +1,5 @@
 import sqlite3
-from .common import em_marine
+from .common import em_marine, get_users_list
 
 
 MAX_GET_CARDS_FORM = 2000 // 50 - 10  # GET request is limited to 2k in the worst case. Each entry = 50. And margin.
@@ -17,13 +17,6 @@ def users_handler(query):
 
     con.commit()
     return
-
-
-def _get_users_list():
-    con = sqlite3.connect('service_data/users.db')
-    cur = con.cursor()
-    cur.execute('SELECT card, username from users')
-    return dict(cur.fetchall())
 
 
 def _get_all_cards(controllers_dict):
@@ -93,7 +86,7 @@ def get_users_page(controllers_dict):
     """
 
     cards = _get_all_cards(controllers_dict)
-    users = _get_users_list()
+    users = get_users_list()
 
     for card in cards[:MAX_GET_CARDS_FORM]:
         answer += f"""

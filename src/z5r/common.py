@@ -1,6 +1,13 @@
 import sqlite3
 
 
+def get_users_list():
+    con = sqlite3.connect('service_data/users.db')
+    cur = con.cursor()
+    cur.execute('SELECT card, username from users')
+    return dict(cur.fetchall())
+
+
 def get_events_by_date(databases, start_datetime, end_datetime, card_filter=False):
     if card_filter:
         sql_flt = ' AND card != "000000000000"'
