@@ -40,11 +40,11 @@ def em_marine(card_hex):
 def inject_top_bar(page):
     index_body = page.find('<body>')
     index_style = page.find('<style>')
-    if index_body == -1 or index_style == -1:
+    if index_body == -1 or index_style == -1 or index_body < index_style:
         return page
     injection_body = """
      <div class="topnav">
-  <a class="active" href="/control">Control</a>
+  <a href="/control">Control</a>
   <a href="/attendance">Attendance</a>
   <a href="/users">Users</a>
 </div>
@@ -70,11 +70,6 @@ def inject_top_bar(page):
   background-color: #ddd;
   color: black;
 }
-
-/* Add a color to the active/current link */
-.topnav a.active {
-  background-color: #04AA6D;
-  color: white;
 }
         """
     return page[:index_style+7] + injection_style + \
