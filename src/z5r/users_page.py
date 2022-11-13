@@ -2,7 +2,7 @@ import sqlite3
 from .common import em_marine
 
 
-MAX_GET_CARDS_FORM = 300 // 20 - 10  # GET request is limited to 2k in the worst case. Each entry = 20. And margin.
+MAX_GET_CARDS_FORM = 2000 // 20 - 10  # GET request is limited to 2k in the worst case. Each entry = 20. And margin.
 
 
 def users_handler(query, controllers_dict):
@@ -98,7 +98,7 @@ def get_users_page(controllers_dict):
 
     if len(cards) > MAX_GET_CARDS_FORM:
         answer += f"""
-        <p style="color: red; font-size: xx-large;">Card number limit {MAX_GET_CARDS_FORM} reached. Rewrite code.</p>
+        <p style="color: red; font-size: x-large;">Card number limit {MAX_GET_CARDS_FORM} reached. Rewrite code.</p>
         """
 
     answer += tail
