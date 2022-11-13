@@ -9,6 +9,17 @@ def users_handler(query, controllers_dict):
     return query, controllers_dict
 
 
+def _get_users_list():
+    con = sqlite3.connect('service_data/users.db')
+    cur = con.cursor()
+    cur.execute('SELECT name FROM sqlite_master WHERE "name"="users"')
+    if cur.fetchone() is None:
+        cur.execute('CREATE TABLE users(card, username)')
+    cur.execute('SELECT card, username from users')
+
+    return {'0000000B8403': 'Sergey'}
+
+
 def get_users_page(controllers_dict):
     head = """
     <!DOCTYPE html>
@@ -72,6 +83,8 @@ def get_users_page(controllers_dict):
     seen.add('000000000000')  # This will filter out the nocard entries
     cards = [x[0] for x in cards if not (x[0] in seen or seen.add(x[0]))]  # Filter and unwrap
 
+    users = _get_users_list()
+
     for card in cards[:MAX_GET_CARDS_FORM]:
         answer += f"""
         <tr>
@@ -83,9 +96,14 @@ def get_users_page(controllers_dict):
         </td>
         <td>"""
 
+        if card in users:
+            name = users[card]
+        else:
+            name = ''
+
         answer += f"""
         <label for="name_{card}">Name:</label>
-        <input type="text" id="name_{card}" name="name_{card}" value="">"""
+        <input type="text" id="name_{card}" name="name_{card}" value="{name}">"""
 
         answer += """</td>
         </tr>"""
