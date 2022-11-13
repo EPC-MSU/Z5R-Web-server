@@ -35,8 +35,7 @@ def _get_users_list():
     con = sqlite3.connect('service_data/users.db')
     cur = con.cursor()
     cur.execute('SELECT card, username from users')
-    ret = dict(cur.fetchall())
-    return {'0000000B8403': 'Sergey'}
+    return dict(cur.fetchall())
 
 
 def _get_all_cards(controllers_dict):
