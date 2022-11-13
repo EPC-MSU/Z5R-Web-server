@@ -69,7 +69,7 @@ def get_users_page(controllers_dict):
         cards += res
     # Filter duplicates
     seen = set()
-    set.add('000000000000')  # This will filter out the nocard entries
+    seen.add('000000000000')  # This will filter out the nocard entries
     cards = [x for x in cards if not (x in seen or seen.add(x))]
 
     for card in cards[:MAX_GET_CARDS_FORM]:
