@@ -11,6 +11,7 @@ import base64
 import os
 import sqlite3
 from urllib.parse import urlparse, parse_qs
+from .common import inject_top_bar
 
 
 MAXIMUM_POST_LENGTH = 2000
@@ -63,6 +64,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 return
 
             self.do_HEAD()
+            answer = inject_top_bar(answer)
             self.wfile.write(answer.encode('utf-8'))
         else:
             self.do_AUTHHEAD()
@@ -160,7 +162,7 @@ def _check_table():
 
 def run():
     try:
-        logging.basicConfig(filename='service_data/z5r.log', level=logging.DEBUG)
+        logging.basicConfig(filename='service_data/z5r.log', level=logging.WARNING)
     except FileNotFoundError as e:
         print(e)
         print('There is no service_data folder in the root of the service folder. '
