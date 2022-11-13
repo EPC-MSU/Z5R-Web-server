@@ -70,22 +70,22 @@ def get_users_page(controllers_dict):
     # Filter duplicates
     seen = set()
     seen.add('000000000000')  # This will filter out the nocard entries
-    cards = [x for x in cards if not (x in seen or seen.add(x))]
+    cards = [x[0] for x in cards if not (x[0] in seen or seen.add(x[0]))]  # Filter and unwrap
 
     for card in cards[:MAX_GET_CARDS_FORM]:
         answer += f"""
         <tr>
         <td>
-        {card[0]}
+        {card}
         </td>
         <td>
-        {em_marine(card[0])}
+        {em_marine(card)}
         </td>
         <td>"""
 
         answer += f"""
-        <label for="name_{card[0]}">Name:</label>
-        <input type="text" id="name_{card[0]}" name="name_{card[0]}" value="">"""
+        <label for="name_{card}">Name:</label>
+        <input type="text" id="name_{card}" name="name_{card}" value="">"""
 
         answer += """</td>
         </tr>"""
@@ -98,7 +98,7 @@ def get_users_page(controllers_dict):
 
     if len(cards) > MAX_GET_CARDS_FORM:
         answer += f"""
-        <p style:"color: red; font-size: xx-large;">Card number limit {MAX_GET_CARDS_FORM} reached. Rewrite code.</p>
+        <p style="color: red; font-size: xx-large;">Card number limit {MAX_GET_CARDS_FORM} reached. Rewrite code.</p>
         """
 
     answer += tail
