@@ -14,7 +14,7 @@ from urllib.parse import urlparse, parse_qs
 
 
 MAXIMUM_POST_LENGTH = 2000
-TCP_PORT = 8080
+TCP_PORT = 80
 
 
 z5r_dict = dict()

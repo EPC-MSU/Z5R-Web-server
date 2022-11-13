@@ -23,7 +23,8 @@ sudo docker-compose up
 
 ### Настройка контроллера
 
-В Z5R-Web в разделе "Режим работы" необходимо записать в поле "Server Address" http://<адрес сервера>:8080
+В Z5R-Web в разделе "Режим работы" необходимо включить режим WEB JSON и 
+записать в поле "Server Address" http://<адрес сервера>
 
 ## Для разработчика
 
@@ -36,7 +37,7 @@ sudo docker-compose up
 Постройте image и запустите в нём bash
 ```bash
 sudo docker-compose build
-sudo docker run --rm -it --entrypoint bash -p 8080:8080 z5r-server-image
+sudo docker run --rm -it --entrypoint bash -p 80:80 z5r-server-image
 ```
 Указание `-p 8080:8080` важно, чтобы приложение было доступно по этому порту снаружи.
 Вы должны быть в директории проекта. Если это не так, то перейдите в неё
