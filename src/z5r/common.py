@@ -70,7 +70,6 @@ def inject_top_bar(page):
   background-color: #ddd;
   color: black;
 }
-}
         """
     return page[:index_style+7] + injection_style + \
         page[index_style+7:index_body+6] + injection_body + page[index_body+6:]
