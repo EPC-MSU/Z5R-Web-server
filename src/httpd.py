@@ -11,7 +11,6 @@ import base64
 import os
 import sqlite3
 from urllib.parse import urlparse, parse_qs
-from .common import inject_top_bar
 
 
 MAXIMUM_POST_LENGTH = 2000
@@ -64,7 +63,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 return
 
             self.do_HEAD()
-            answer = inject_top_bar(answer)
+            answer = z5r.inject_top_bar(answer)
             self.wfile.write(answer.encode('utf-8'))
         else:
             self.do_AUTHHEAD()
