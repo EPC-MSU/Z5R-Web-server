@@ -53,7 +53,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 answer += z5r.get_attendance_page(z5r_dict)
             elif parsed.path == '/users':
                 # Handle an action if any
-                z5r.users_handler(parse_qs(parsed.query), z5r_dict)
+                z5r.users_handler(parse_qs(parsed.query))
                 # Display control page
                 answer += z5r.get_users_page(z5r_dict)
             else:

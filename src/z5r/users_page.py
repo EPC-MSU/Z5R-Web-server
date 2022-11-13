@@ -2,11 +2,21 @@ import sqlite3
 from .common import em_marine
 
 
-MAX_GET_CARDS_FORM = 2000 // 20 - 10  # GET request is limited to 2k in the worst case. Each entry = 20. And margin.
+MAX_GET_CARDS_FORM = 2000 // 50 - 10  # GET request is limited to 2k in the worst case. Each entry = 50. And margin.
 
 
-def users_handler(query, controllers_dict):
-    return query, controllers_dict
+def users_handler(query):
+    con = sqlite3.connect('service_data/users.db')
+    cur = con.cursor()
+
+    for key in query:
+        if len(key) != 17:
+            continue
+        if key.startswith('name_'):
+            cur.execute(f'INSERT OR REPLACE INTO users VALUES ("{key[5:18]}", "{query[key][0]}")')
+
+    con.commit()
+    return
 
 
 def _get_users_list():
@@ -15,9 +25,29 @@ def _get_users_list():
     cur.execute('SELECT name FROM sqlite_master WHERE "name"="users"')
     if cur.fetchone() is None:
         cur.execute('CREATE TABLE users(card, username)')
+        cur.execute('CREATE UNIQUE INDEX card_index ON users (card)')
     cur.execute('SELECT card, username from users')
-
+    ret = dict(cur.fetchall())
     return {'0000000B8403': 'Sergey'}
+
+
+def _get_all_cards(controllers_dict):
+    # Load all cards from databases
+    databases = ['service_data/{}_events.db'.format(sn) for sn in controllers_dict]
+    cards = list()
+    for dbname in databases:
+        con = sqlite3.connect(dbname)
+        cur = con.cursor()
+        cur.execute('SELECT DISTINCT card from events ORDER BY time')
+        res = cur.fetchall()
+        if len(res) == 0:
+            continue
+        cards += res
+    # Filter duplicates
+    seen = set()
+    seen.add('000000000000')  # This will filter out the nocard entries
+    cards = [x[0] for x in cards if not (x[0] in seen or seen.add(x[0]))]  # Filter and unwrap
+    return cards
 
 
 def get_users_page(controllers_dict):
@@ -67,22 +97,7 @@ def get_users_page(controllers_dict):
     </td>
     """
 
-    # Load all cards from databases
-    databases = ['service_data/{}_events.db'.format(sn) for sn in controllers_dict]
-    cards = list()
-    for dbname in databases:
-        con = sqlite3.connect(dbname)
-        cur = con.cursor()
-        cur.execute('SELECT DISTINCT card from events ORDER BY time')
-        res = cur.fetchall()
-        if len(res) == 0:
-            continue
-        cards += res
-    # Filter duplicates
-    seen = set()
-    seen.add('000000000000')  # This will filter out the nocard entries
-    cards = [x[0] for x in cards if not (x[0] in seen or seen.add(x[0]))]  # Filter and unwrap
-
+    cards = _get_all_cards(controllers_dict)
     users = _get_users_list()
 
     for card in cards[:MAX_GET_CARDS_FORM]:
@@ -103,7 +118,7 @@ def get_users_page(controllers_dict):
 
         answer += f"""
         <label for="name_{card}">Name:</label>
-        <input type="text" id="name_{card}" name="name_{card}" value="{name}">"""
+        <input type="text" id="name_{card}" name="name_{card}" value="{name}" maxlength="30">"""
 
         answer += """</td>
         </tr>"""
