@@ -5,18 +5,6 @@ from .common import em_marine
 MAX_GET_CARDS_FORM = 2000 // 50 - 10  # GET request is limited to 2k in the worst case. Each entry = 50. And margin.
 
 
-def _check_table():
-    con = sqlite3.connect('service_data/users.db')
-    cur = con.cursor()
-    cur.execute('SELECT name FROM sqlite_master WHERE "name"="users"')
-    if cur.fetchone() is None:
-        cur.execute('CREATE TABLE users(card, username)')
-        cur.execute('CREATE UNIQUE INDEX card_index ON users (card)')
-
-
-_check_table()
-
-
 def users_handler(query):
     con = sqlite3.connect('service_data/users.db')
     cur = con.cursor()

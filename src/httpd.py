@@ -9,6 +9,7 @@ import logging
 import z5r
 import base64
 import os
+import sqlite3
 from urllib.parse import urlparse, parse_qs
 
 
@@ -148,6 +149,15 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(answer)
 
 
+def _check_table():
+    con = sqlite3.connect('service_data/users.db')
+    cur = con.cursor()
+    cur.execute('SELECT name FROM sqlite_master WHERE "name"="users"')
+    if cur.fetchone() is None:
+        cur.execute('CREATE TABLE users(card, username)')
+        cur.execute('CREATE UNIQUE INDEX card_index ON users (card)')
+
+
 def run():
     try:
         logging.basicConfig(filename='service_data/z5r.log', level=logging.DEBUG)
@@ -175,6 +185,8 @@ def run():
     global auth
     auth = auth_file.read()
     auth_file.close()
+
+    _check_table()
 
     logging.info('http server is starting...')
     server_address = ('0.0.0.0', TCP_PORT)
