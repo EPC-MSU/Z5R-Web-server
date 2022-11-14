@@ -11,7 +11,9 @@ def action_handler(query, controllers_dict):
     try:  # Get main query parameters
         cnt = controllers_dict[int(query['sn'][0])]
         action = query['action'][0]
-    except (ValueError, KeyError, TypeError) as e:
+    except KeyError:
+        return  # query doesn't contain values for processing
+    except (ValueError, TypeError) as e:
         logging.error(e)
         return
     try:

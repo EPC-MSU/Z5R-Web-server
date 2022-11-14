@@ -4,7 +4,6 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import time
-import ssl  # noqa
 import logging
 import z5r
 import base64
@@ -192,11 +191,6 @@ def run():
     logging.info('http server is starting...')
     server_address = ('0.0.0.0', TCP_PORT)
     httpd = HTTPServer(server_address, HTTPRequestHandler)
-
-#    httpd.socket = ssl.wrap_socket (httpd.socket,
-#                                    keyfile="key.pem",
-#                                    certfile='cert.pem', server_side=True)
-
     logging.info('http server is running...')
     httpd.serve_forever()
 
