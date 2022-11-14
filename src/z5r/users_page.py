@@ -34,6 +34,8 @@ def _update_controllers(query, controllers_dict):
 
 
 def users_handler(query, controllers_dict):
+    if 'action' not in query:  # No action - no further proceeding
+        return
     if query['action'][0] == 'update_users':
         _update_users(query)
     elif query['action'][0] == 'update_controllers':
