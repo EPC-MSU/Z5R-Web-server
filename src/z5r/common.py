@@ -34,7 +34,7 @@ def em_marine(card_hex):
         return 'N/A'
     if card_hex[0:6] != '000000':
         return 'N/A'
-    return '{},{:05}'.format(int(card_hex[6:8], base=16), int(card_hex[8:12], base=16))
+    return '{:03},{:05}'.format(int(card_hex[6:8], base=16), int(card_hex[8:12], base=16))
 
 
 def inject_top_bar(page):

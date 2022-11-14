@@ -45,12 +45,12 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             answer = ''
             # Parse and process parameters in URL
             parsed = urlparse(self.path)
-            if parsed.path == '/' or parsed.path == '' or parsed.path == '/control':
+            if parsed.path == '/control':
                 # Handle an action if any
                 z5r.action_handler(parse_qs(parsed.query), z5r_dict)
                 # Display control page
                 answer += z5r.get_page(z5r_dict)
-            elif parsed.path == '/attendance':
+            elif parsed.path == '/' or parsed.path == '' or parsed.path == '/attendance':
                 answer += z5r.get_attendance_page(z5r_dict)
             elif parsed.path == '/users':
                 # Handle an action if any
