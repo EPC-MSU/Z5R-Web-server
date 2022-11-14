@@ -5,7 +5,7 @@ from .common import em_marine, get_users_list
 MAX_GET_CARDS_FORM = 2000 // 50 - 10  # GET request is limited to 2k in the worst case. Each entry = 50. And margin.
 
 
-def users_handler(query):
+def _update_users(query):
     con = sqlite3.connect('service_data/users.db')
     cur = con.cursor()
 
@@ -17,6 +17,29 @@ def users_handler(query):
 
     con.commit()
     return
+
+
+def _update_controllers(query, controllers_dict):
+    for key in query:
+        if len(key) != 17:
+            continue
+        if key.startswith('name_') and query[key][0] != '':  # User with a name
+            for sn in controllers_dict:
+                card = key[5:18]
+                if card[0:6] == '000000':
+                    flags = 32
+                else:
+                    flags = 0
+                controllers_dict[sn].add_card(card, flags, 255)
+
+
+def users_handler(query, controllers_dict):
+    if query['action'][0] == 'update_users':
+        _update_users(query)
+    elif query['action'][0] == 'update_controllers':
+        _update_controllers(query, controllers_dict)
+    else:
+        pass
 
 
 def _get_all_cards(controllers_dict):
@@ -70,8 +93,11 @@ def get_users_page(controllers_dict):
     # Table start
     answer += """
     <form action="/users" id="users_form" method="get">
-    <button name="action" type="submit" value="update_users">Update users</button>
-    <table style="width: 100%; height: 108px;">
+    <button name="action" type="submit" value="update_users" width="20%">Update users</button>
+    <button name="action" type="submit" value="update_controllers" width="20%">
+        Update controllers with all user keys with names
+    </button>
+    <table style="width: 100%;">
     <tbody>
     <tr>
     <td>
