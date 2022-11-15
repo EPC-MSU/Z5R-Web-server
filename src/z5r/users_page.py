@@ -143,7 +143,7 @@ def get_users_page(controllers_dict):
         <td>
         """
         if name != '':  # This user has a name
-            row += f'<button name="delete" type="submit" value="{card}">'
+            row += f'<button name="delete" type="submit" value="{card}">Delete user</button>'
         row += """
         </td>
         </tr>"""
