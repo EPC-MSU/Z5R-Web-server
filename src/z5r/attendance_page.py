@@ -3,7 +3,7 @@ from datetime import timedelta
 from .common import get_events_by_date, em_marine, get_users_list
 
 
-DAY_TO_SHOW = 5
+DAY_TO_SHOW = 14
 
 
 def get_attendance_page(controllers_dict):

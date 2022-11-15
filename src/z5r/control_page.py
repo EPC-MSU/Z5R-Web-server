@@ -4,7 +4,7 @@ from datetime import datetime
 from datetime import timedelta
 
 
-DAY_TO_SHOW = 5
+DAY_TO_SHOW = 7
 
 
 def action_handler(query, controllers_dict):
@@ -51,7 +51,7 @@ def _per_controller_page(sn):
     forms = ['open_door', 'set_mode', 'set_door_params', 'add_cards', 'del_cards', 'clear_cards']
     for form in forms:
         answer += """
-<form action="/" id="{}_{}" method="get">
+<form action="/control" id="{}_{}" method="get">
 <input type="hidden" name="sn" value="{}">
 </form>""".format(form, sn, sn)
 
