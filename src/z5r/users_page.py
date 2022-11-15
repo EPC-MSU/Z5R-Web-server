@@ -136,15 +136,15 @@ def get_users_page(controllers_dict):
         else:
             name = ''
 
-        answer += f"""
+        row += f"""
         <label for="name_{card}">Name:</label>
         <input type="text" id="name_{card}" name="name_{card}" value="{name}" maxlength="30">
         </td>
         <td>
         """
         if name != '':  # This user has a name
-            answer += f'<button name="delete" type="submit" value="{card}">'
-        answer += """
+            row += f'<button name="delete" type="submit" value="{card}">'
+        row += """
         </td>
         </tr>"""
         if name != '':  # Priority for registered users with a name
