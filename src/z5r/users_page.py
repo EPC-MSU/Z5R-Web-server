@@ -118,9 +118,10 @@ def get_users_page(controllers_dict):
 
     cards = _get_all_cards(controllers_dict)
     users = get_users_list()
+    lowrow = ''
 
     for card in cards[:MAX_GET_CARDS_FORM]:
-        answer += f"""
+        row = f"""
         <tr>
         <td>
         {card}
@@ -141,10 +142,16 @@ def get_users_page(controllers_dict):
         </td>
         <td>
         """
-        answer += f'<button name="delete" type="submit" value="{card}">'
+        if name != '':  # This user has a name
+            answer += f'<button name="delete" type="submit" value="{card}">'
         answer += """
         </td>
         </tr>"""
+        if name != '':  # Priority for registered users with a name
+            answer += row
+        else:
+            lowrow += row
+    answer += lowrow
 
     # Table end
     answer += """
