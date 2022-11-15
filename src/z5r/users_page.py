@@ -111,6 +111,9 @@ def get_users_page(controllers_dict):
     <td>
     Name
     </td>
+    <td>
+    Control
+    </td>
     """
 
     cards = _get_all_cards(controllers_dict)
@@ -134,9 +137,13 @@ def get_users_page(controllers_dict):
 
         answer += f"""
         <label for="name_{card}">Name:</label>
-        <input type="text" id="name_{card}" name="name_{card}" value="{name}" maxlength="30">"""
-
-        answer += """</td>
+        <input type="text" id="name_{card}" name="name_{card}" value="{name}" maxlength="30">
+        </td>
+        <td>
+        """
+        answer += f'<button name="delete" type="submit" value="{card}">'
+        answer += """
+        </td>
         </tr>"""
 
     # Table end

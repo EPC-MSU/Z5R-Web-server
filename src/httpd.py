@@ -46,7 +46,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             parsed = urlparse(self.path)
             if parsed.path == '/control':
                 # Handle an action if any
-                z5r.action_handler(parse_qs(parsed.query), z5r_dict)
+                z5r.action_handler(parse_qs(parsed.query, keep_blank_values=True), z5r_dict)
                 # Display control page
                 answer += z5r.get_page(z5r_dict)
             elif parsed.path == '/' or parsed.path == '' or parsed.path == '/attendance':
