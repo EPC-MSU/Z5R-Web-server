@@ -1,5 +1,6 @@
 from unittest import TestCase
 from src.z5r import Z5RWebController
+from src.z5r.users_page import _get_all_cards
 import os
 import binascii
 
@@ -167,5 +168,18 @@ class TestZ5RWebController(TestCase):
             assert ('open' in response)
             assert ('open_control' in response)
             assert ('close_control' in response)
+        except Exception:
+            self.assertTrue(False)
+
+
+class TestUsersPage(TestCase):
+    def test_get_all_cards(self):
+        try:
+            cards = _get_all_cards()
+            for card in cards:
+                if card == '000000000000':
+                    raise ValueError('One of the cards have no number (000000000000)')
+                if len(card) != 12:
+                    raise ValueError('One of the cards have length not 12 symbols ({})'.format(card))
         except Exception:
             self.assertTrue(False)

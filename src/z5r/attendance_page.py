@@ -6,7 +6,7 @@ from .common import get_events_by_date, em_marine, get_users_list
 DAY_TO_SHOW = 14
 
 
-def get_attendance_page(controllers_dict):
+def get_attendance_page():
     head = """
     <!DOCTYPE html>
     <html lang="en">
@@ -78,9 +78,8 @@ def get_attendance_page(controllers_dict):
     # Start event collapsible view
     start = datetime.now().date() - timedelta(DAY_TO_SHOW)  # The end of this day
     days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
-    databases = ['service_data/{}_events.db'.format(sn) for sn in controllers_dict]
     for day in range(0, DAY_TO_SHOW + 1):
-        res = get_events_by_date(databases, days[day], days[day + 1], card_filter=True)
+        res = get_events_by_date(days[day], days[day + 1], card_filter=True)
         if len(res) == 0:
             continue
 
@@ -108,6 +107,7 @@ def get_attendance_page(controllers_dict):
         <td>First event</td>
         <td>Last event</td>
         </tr>"""
+
         for card in work_periods:
             if card in users_dict:
                 name = users_dict[card]

@@ -56,7 +56,7 @@ class Z5RWebController:
     and resides in list until a successful status is received from Z5R-Web with corresponding id.
     """
     def __init__(self, sn):
-        self.sn = sn
+        self.sn = int(sn)
         self.online_mode = 0  # Disable online mode for now
         self.interval = 8  # Set fixed interval for now
         self.pending_active = 0  # We start with non active pending state
@@ -67,12 +67,12 @@ class Z5RWebController:
         self.active = None
         self.mode = None
         self.event_file = open('service_data/{}_events.log'.format(sn), 'a')
-        self.con = sqlite3.connect('service_data/{}_events.db'.format(sn))
+        self.con = sqlite3.connect('service_data/z5r.db')
         # Check that this database is valid
         cur = self.con.cursor()
         res = cur.execute('SELECT name FROM sqlite_master WHERE "name"="events"')
         if res.fetchone() is None:
-            cur.execute('CREATE TABLE events(time, card, event_name, event_code, flags)')
+            cur.execute('CREATE TABLE events(controller, time, card, event_name, event_code, flags)')
 
     def __del__(self):
         self.event_file.close()
@@ -152,8 +152,8 @@ class Z5RWebController:
 
             # Write all events into database
             cur = self.con.cursor()
-            cur.executemany('INSERT INTO events VALUES(?, ?, ?, ?, ?)', [
-                (event_time, card, event_names[event_type], event_type, flag)
+            cur.executemany('INSERT INTO events VALUES(?, ?, ?, ?, ?, ?)', [
+                (self.sn, event_time, card, event_names[event_type], event_type, flag)
             ])
             self.con.commit()
 

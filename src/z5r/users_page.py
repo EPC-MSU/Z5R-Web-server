@@ -6,7 +6,7 @@ MAX_GET_CARDS_FORM = 2000 // 50 - 10  # GET request is limited to 2k in the wors
 
 
 def _update_users(query):
-    con = sqlite3.connect('service_data/users.db')
+    con = sqlite3.connect('service_data/z5r.db')
     cur = con.cursor()
 
     for key in query:
@@ -44,26 +44,16 @@ def users_handler(query, controllers_dict):
         pass
 
 
-def _get_all_cards(controllers_dict):
-    # Load all cards from databases
-    databases = ['service_data/{}_events.db'.format(sn) for sn in controllers_dict]
-    cards = list()
-    for dbname in databases:
-        con = sqlite3.connect(dbname)
-        cur = con.cursor()
-        cur.execute('SELECT DISTINCT card from events ORDER BY time')
-        res = cur.fetchall()
-        if len(res) == 0:
-            continue
-        cards += res
-    # Filter duplicates
-    seen = set()
-    seen.add('000000000000')  # This will filter out the nocard entries
-    cards = [x[0] for x in cards if not (x[0] in seen or seen.add(x[0]))]  # Filter and unwrap
+def _get_all_cards():
+    con = sqlite3.connect('service_data/z5r.db')
+    cur = con.cursor()
+    cur.execute('SELECT DISTINCT card from events ORDER BY time')
+    res = cur.fetchall()
+    cards = [x[0] for x in res if x[0] != '000000000000']  # Filter and unwrap
     return cards
 
 
-def get_users_page(controllers_dict):
+def get_users_page():
     head = """
     <!DOCTYPE html>
     <html lang="en">
@@ -116,7 +106,7 @@ def get_users_page(controllers_dict):
     </td>
     """
 
-    cards = _get_all_cards(controllers_dict)
+    cards = _get_all_cards()
     users = get_users_list()
     lowrow = ''
 

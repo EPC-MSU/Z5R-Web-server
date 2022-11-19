@@ -50,12 +50,12 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 # Display control page
                 answer += z5r.get_page(z5r_dict)
             elif parsed.path == '/' or parsed.path == '' or parsed.path == '/attendance':
-                answer += z5r.get_attendance_page(z5r_dict)
+                answer += z5r.get_attendance_page()
             elif parsed.path == '/users':
                 # Handle an action if any
                 z5r.users_handler(parse_qs(parsed.query, keep_blank_values=True), z5r_dict)
                 # Display control page
-                answer += z5r.get_users_page(z5r_dict)
+                answer += z5r.get_users_page()
             else:
                 self.send_error(404, 'Not found')
                 self.end_headers()
@@ -150,7 +150,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
 
 def _check_table():
-    con = sqlite3.connect('service_data/users.db')
+    con = sqlite3.connect('service_data/z5r.db')
     cur = con.cursor()
     cur.execute('SELECT name FROM sqlite_master WHERE "name"="users"')
     if cur.fetchone() is None:
