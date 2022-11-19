@@ -10,7 +10,7 @@ def _update_users(query):
     cur = con.cursor()
 
     for key in query:
-        if len(key) != 17:
+        if len(key) != 17 or query[key][0] == '':
             continue
         if key.startswith('name_'):
             cur.execute(f'INSERT OR REPLACE INTO users VALUES ("{key[5:18]}", "{query[key][0]}")')
@@ -121,7 +121,7 @@ def get_users_page():
 
     # First section is known users
     for card in users:
-        answer +=  f"""
+        answer += f"""
         <tr>
         <td>
         <label for="name_{card}">Name:</label>
@@ -142,6 +142,14 @@ def get_users_page():
         cards_count += 1
         if cards_count >= MAX_GET_CARDS_FORM:
             break
+
+    # Insert separator
+    answer += """
+        <tr>
+        <td colspan="4" align="center" style="background-color:lightgray">
+        Unknown cards
+        </td>
+        </tr>"""
 
     # Then go unknown cards
     for card in cards:
