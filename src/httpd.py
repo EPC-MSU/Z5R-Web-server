@@ -74,7 +74,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         else:
             self.do_AUTHHEAD()
             self.wfile.write(self.headers.get('Authorization').encode('utf-8'))
-            self.wfile.write(b'not authenticated')
+            self.wfile.write(b' not authenticated')
 
     def do_POST(self):  # noqa
         parsed = urlparse(self.path)
@@ -207,7 +207,7 @@ def run():
 
     auth_file = open('service_data/auth', 'r')
     global auth
-    auth = auth_file.read()
+    auth = auth_file.read().strip()  # strip from spaces and end of line
     auth_file.close()
 
     _check_table()
