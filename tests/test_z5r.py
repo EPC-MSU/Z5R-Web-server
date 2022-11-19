@@ -1,6 +1,6 @@
 from unittest import TestCase
 from src.z5r import Z5RWebController
-from src.z5r.users_page import _get_all_cards
+from src.z5r.users_page import _get_all_cards, _update_users
 import os
 import binascii
 
@@ -181,5 +181,15 @@ class TestUsersPage(TestCase):
                     raise ValueError('One of the cards have no number (000000000000)')
                 if len(card) != 12:
                     raise ValueError('One of the cards have length not 12 symbols ({})'.format(card))
+        except Exception:
+            self.assertTrue(False)
+
+    def test_update_users(self):
+        try:
+            query = [
+                {'name_000000000001' : 'test_update_users1'},
+                {'name_000000000002': 'test_update_users2'}
+                     ]
+            cards = _update_users(query)
         except Exception:
             self.assertTrue(False)
