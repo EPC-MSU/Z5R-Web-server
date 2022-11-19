@@ -5,7 +5,6 @@ from src.z5r.common import get_events_by_date
 import os
 import binascii
 from datetime import datetime
-from datetime import timedelta
 
 
 os.chdir(os.path.dirname(__file__) + '/..')
@@ -190,7 +189,7 @@ class TestUsersPage(TestCase):
     def test_update_users(self):
         try:
             query = [
-                {'name_000000000001' : 'test_update_users1'},
+                {'name_000000000001': 'test_update_users1'},
                 {'name_000000000002': 'test_update_users2'}
                      ]
             _update_users(query)
@@ -201,7 +200,6 @@ class TestUsersPage(TestCase):
 class TestCommon(TestCase):
     def test_get_events_by_date(self):
         try:
-            DAY_TO_SHOW = 3
             start = datetime.fromtimestamp(0)
             end = datetime.now()
             get_events_by_date(start, end, controller_filter=str(0), card_filter=True)
