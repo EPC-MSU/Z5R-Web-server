@@ -70,83 +70,92 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(b'not authenticated')
 
     def do_POST(self):  # noqa
-        # Length must not exceed MAXIMUM_POST_LENGTH
-        msg_len = int(self.headers.get('Content-Length'))
-        if msg_len > MAXIMUM_POST_LENGTH:
-            logging.error(self.headers.get('User-Agent', failobj='User-Agent not found')
-                          + ' sent POST request with length more than {}.'.format(MAXIMUM_POST_LENGTH))
-            self.send_error(400, 'Bad Request')
+        parsed = urlparse(self.path)
+        if parsed.path == '/connect':
+            # Length must not exceed MAXIMUM_POST_LENGTH
+            msg_len = int(self.headers.get('Content-Length'))
+            if msg_len > MAXIMUM_POST_LENGTH:
+                logging.error(self.headers.get('User-Agent', failobj='User-Agent not found')
+                              + ' sent POST request with length more than {}.'.format(MAXIMUM_POST_LENGTH))
+                self.send_error(400, 'Bad Request')
 
-        msg = self.rfile.read(msg_len)
-        logging.debug('Received: {}'.format(msg))
+            msg = self.rfile.read(msg_len)
+            logging.debug('Received: {}'.format(msg))
 
-        # Did we receive a correct JSON
-        try:
-            jsn = json.loads(msg)
-        except ValueError:
-            logging.error(self.headers.get('User-Agent', failobj='User-Agent not found') +
-                          ' sent POST request that is not a JSON object.')
-            self.send_error(400, 'Bad Request')
-            return
+            # Did we receive a correct JSON
+            try:
+                jsn = json.loads(msg)
+            except ValueError:
+                logging.error(self.headers.get('User-Agent', failobj='User-Agent not found') +
+                              ' sent POST request that is not a JSON object.')
+                self.send_error(400, 'Bad Request')
+                return
 
-        sn = int(jsn.get('sn'))
-        device_type = jsn.get('type')
-        messages = jsn.get('messages')
-        logging.debug('A request with serial number {} and device type {}'
-                      ' was received with {} messages.'.format(sn, device_type, len(messages)))
+            sn = int(jsn.get('sn'))
+            device_type = jsn.get('type')
+            messages = jsn.get('messages')
+            logging.debug('A request with serial number {} and device type {}'
+                          ' was received with {} messages.'.format(sn, device_type, len(messages)))
 
-        if sn not in z5r_dict:
-            z5r_dict[sn] = z5r.Z5RWebController(sn)
-            z5r_dict[sn].set_active()
+            if sn not in z5r_dict:
+                z5r_dict[sn] = z5r.Z5RWebController(sn)
+                z5r_dict[sn].set_active()
 
-        for msg_json in messages:
-            req_id = msg_json.get('id')
-            if req_id is None:
-                logging.error('No id in {} from {} sn {}. Skipping message.'.format(msg_json, device_type, sn))
-                continue
+            for msg_json in messages:
+                req_id = msg_json.get('id')
+                if req_id is None:
+                    logging.error('No id in {} from {} sn {}. Skipping message.'.format(msg_json, device_type, sn))
+                    continue
 
-            operation = msg_json.get('operation')  # Get operation type for processing
-            if operation is None:  # No operation means it is an answer from Z5R
-                if msg_json.get('success') == 1:
-                    logging.debug('Success from {} sn {} on request id {}.'.format(device_type, sn, req_id))
-                    z5r_dict[sn].success(req_id)
+                operation = msg_json.get('operation')  # Get operation type for processing
+                if operation is None:  # No operation means it is an answer from Z5R
+                    if msg_json.get('success') == 1:
+                        logging.debug('Success from {} sn {} on request id {}.'.format(device_type, sn, req_id))
+                        z5r_dict[sn].success(req_id)
+                    else:
+                        logging.error('Unknown answer {} from {} sn {}.'.format(msg_json, device_type, sn))
+
+                elif operation == 'power_on':  # Power on operation is sent to make initialization
+                    logging.info('Power on from {} sn {} received.'.format(device_type, sn))
+                    z5r_dict[sn].power_on_handler(msg_json, req_id)
+                    # Response is not required
+
+                elif operation == 'ping':  # Periodical signal to request data from server
+                    logging.debug('Ping from {} sn {} received.'.format(device_type, sn))
+                    z5r_dict[sn].ping_handler(msg_json, req_id)
+                    # Response is a list of messages
+
+                elif operation == 'check_access':  # Pass/block check for online server mode only
+                    logging.debug('Check access from {} sn {} received.'.format(device_type, sn))
+                    z5r_dict[sn].check_access_handler(msg_json, req_id)
+                    # Must respond
+
+                elif operation == 'events':
+                    logging.debug('Events from {} sn {} received.'.format(device_type, sn))
+                    z5r_dict[sn].events_handler(msg_json.get('events'), req_id)
+                    # Must respond
+
                 else:
-                    logging.error('Unknown answer {} from {} sn {}.'.format(msg_json, device_type, sn))
+                    logging.error('Unknown operation {} from {} sn {}'.format(operation, device_type, sn))
 
-            elif operation == 'power_on':  # Power on operation is sent to make initialization
-                logging.info('Power on from {} sn {} received.'.format(device_type, sn))
-                z5r_dict[sn].power_on_handler(msg_json, req_id)
-                # Response is not required
-
-            elif operation == 'ping':  # Periodical signal to request data from server
-                logging.debug('Ping from {} sn {} received.'.format(device_type, sn))
-                z5r_dict[sn].ping_handler(msg_json, req_id)
-                # Response is a list of messages
-
-            elif operation == 'check_access':  # Pass/block check for online server mode only
-                logging.debug('Check access from {} sn {} received.'.format(device_type, sn))
-                z5r_dict[sn].check_access_handler(msg_json, req_id)
-                # Must respond
-
-            elif operation == 'events':
-                logging.debug('Events from {} sn {} received.'.format(device_type, sn))
-                z5r_dict[sn].events_handler(msg_json.get('events'), req_id)
-                # Must respond
-
-            else:
-                logging.error('Unknown operation {} from {} sn {}'.format(operation, device_type, sn))
-
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        answer = '{"date":"%s","interval":%d,"messages":%s}' % (
-            time.strftime('%Y-%m-%d %H:%M:%S'),
-            z5r_dict[sn].get_interval(),
-            json.dumps(z5r_dict[sn].get_messages(max_size=1500))
-        )
-        answer = answer.encode('utf-8')
-        logging.debug('Sent: {}'.format(answer))
-        self.wfile.write(answer)
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            answer = '{"date":"%s","interval":%d,"messages":%s}' % (
+                time.strftime('%Y-%m-%d %H:%M:%S'),
+                z5r_dict[sn].get_interval(),
+                json.dumps(z5r_dict[sn].get_messages(max_size=1500))
+            )
+            answer = answer.encode('utf-8')
+            logging.debug('Sent: {}'.format(answer))
+            self.wfile.write(answer)
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            answer = 'Dummy'
+            answer = answer.encode('utf-8')
+            self.wfile.write(answer)
 
 
 def _check_table():
