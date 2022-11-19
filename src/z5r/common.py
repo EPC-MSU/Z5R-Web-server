@@ -1,4 +1,5 @@
 import sqlite3
+import re
 
 
 def get_users_list():
@@ -34,6 +35,19 @@ def em_marine(card_hex):
     if card_hex[0:6] != '000000':
         return 'N/A'
     return '{:03},{:05}'.format(int(card_hex[6:8], base=16), int(card_hex[8:12], base=16))
+
+
+def em_marine2hex(em_marine):
+    high_byte = int(em_marine[0:3])
+    low_bytes = int(em_marine[4:9])
+    return '000000{:02X}{:04X}'.format(high_byte, low_bytes)
+
+
+def validate_em_marine(code_string):
+    if re.fullmatch('[0-9]{3},[0-9]{5}', code_string) is not None:
+        return True
+    else:
+        return False
 
 
 def inject_top_bar(page):

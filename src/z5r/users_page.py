@@ -1,5 +1,5 @@
 import sqlite3
-from .common import em_marine, get_users_list
+from .common import em_marine, get_users_list, validate_em_marine, em_marine2hex
 
 
 MAX_GET_CARDS_FORM = 2000 // 50 - 10  # GET request is limited to 2k in the worst case. Each entry = 50. And margin.
@@ -16,7 +16,19 @@ def _update_users(query):
             cur.execute(f'INSERT OR REPLACE INTO users VALUES ("{key[5:18]}", "{query[key][0]}")')
 
     con.commit()
-    return
+
+
+def _add_one_user(name, card, em_marine, method):
+    if method == 'HEX':
+        card_key = card
+    elif method == 'em_marine':
+        card_key = em_marine2hex(em_marine)
+    else:  # Only support 2 methods
+        return
+    con = sqlite3.connect('service_data/z5r.db')
+    cur = con.cursor()
+    cur.execute(f'INSERT OR REPLACE INTO users VALUES ("{card_key}", "{name}")')
+    con.commit()
 
 
 def _update_controllers(query, controllers_dict):
@@ -49,6 +61,19 @@ def users_handler(query, controllers_dict):
             return
         cur.execute(f'DELETE FROM users WHERE card == "{card}"')
         con.commit()
+    elif 'add_one' in query:
+        method = None
+        if query['add_one'][0] != '':  # Button have no value
+            return
+        if query['name_manual'][0] == '':  # Name must not be empty for new users
+            return
+        if len(query['card_manual'][0]) == 12:  # Validate card number via length (lousy way)
+            method = 'HEX'
+        elif validate_em_marine(query['em_marine_manual'][0]):  # Validate em_marine
+            method = 'em_marine'
+        else:
+            return
+        _add_one_user(query['name_manual'][0], query['card_manual'][0], query['em_marine_manual'][0], method)
 
 
 def _get_all_cards():
@@ -113,6 +138,34 @@ def get_users_page():
     Control
     </td>
     """
+
+    # Manual add user
+    answer += """
+        <tr>
+        <td>
+        <label for="name_manual">Name:</label>
+        <input type="text" id="name_manual" name="name_manual" value="" maxlength="30">
+        </td>
+        <td>
+        <label for="card_manual">Card HEX:</label>
+        <input type="text" id="card_manual" name="card_manual" value="" maxlength="12">
+        </td>
+        <td>
+        <label for="em_marine_manual">Em-Marine:</label>
+        <input type="text" id="em_marine_manual" name="em_marine_manual" value="" maxlength="9">
+        </td>
+        <td>
+        <button name="add_one" type="submit" value="">Add user</button>
+        </td>
+        </tr>"""
+
+    # Insert separator
+    answer += """
+            <tr>
+            <td colspan="4" style="background-color:lightgray">
+            Registered users
+            </td>
+            </tr>"""
 
     # Prepare data
     users = get_users_list()
