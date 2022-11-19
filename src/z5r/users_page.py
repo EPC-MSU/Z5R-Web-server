@@ -2,9 +2,6 @@ import sqlite3
 from .common import em_marine, get_users_list, validate_em_marine, em_marine2hex, validate_hex
 
 
-MAX_GET_CARDS_FORM = 2000 // 50 - 10  # GET request is limited to 2k in the worst case. Each entry = 50. And margin.
-
-
 def _update_users(query):
     con = sqlite3.connect('service_data/z5r.db')
     cur = con.cursor()
@@ -117,7 +114,7 @@ def get_users_page():
 
     # Table start
     answer += """
-    <form action="/users" id="users_form" method="get">
+    <form action="/users" id="users_form" method="post">
     <button name="action" type="submit" value="update_users">Update users</button>
     <button name="action" type="submit" value="update_controllers">
         Update controllers with all user keys with names
@@ -167,7 +164,6 @@ def get_users_page():
     users = get_users_list()
     cards = _get_all_cards()
     processed_cards = list()
-    cards_count = 0
 
     # First section is known users
     for card in users:
@@ -189,10 +185,6 @@ def get_users_page():
         </tr>"""
         processed_cards.append(card)
 
-        cards_count += 1
-        if cards_count >= MAX_GET_CARDS_FORM:
-            break
-
     # Insert separator
     answer += """
         <tr>
@@ -205,10 +197,6 @@ def get_users_page():
     for card in cards:
         if card in processed_cards:  # We do not process the cards that were processed in first section
             continue
-
-        cards_count += 1
-        if cards_count >= MAX_GET_CARDS_FORM:
-            break
 
         answer += f"""
         <tr>
@@ -231,11 +219,6 @@ def get_users_page():
     </tbody>
     </table>
     </form>"""
-
-    if cards_count >= MAX_GET_CARDS_FORM:
-        answer += f"""
-        <p style="color: red; font-size: x-large;">Card number limit {MAX_GET_CARDS_FORM} reached. Rewrite code.</p>
-        """
 
     answer += tail
     return answer

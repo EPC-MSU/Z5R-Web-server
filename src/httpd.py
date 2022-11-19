@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import cgi
 import json
 import time
 import logging
@@ -36,21 +37,26 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
-    def _get_page(self, path, query):
+    def _reply_page_and_headers(self, path, query):
+        answer = ''
         if path == '/control':
             # Handle an action if any
             z5r.action_handler(query, z5r_dict)
             # Display control page
-            return z5r.get_page(z5r_dict)
+            answer = z5r.get_page(z5r_dict)
         elif path == '/' or path == '' or path == '/attendance':
-            return z5r.get_attendance_page()
+            answer = z5r.get_attendance_page()
         elif path == '/users':
             # Handle an action if any
             z5r.users_handler(query, z5r_dict)
             # Display control page
-            return z5r.get_users_page()
+            answer = z5r.get_users_page()
         else:
             raise ValueError('Path not found.')
+
+        self.do_HEAD()
+        answer = z5r.inject_top_bar(answer)
+        self.wfile.write(answer.encode('utf-8'))
 
     def do_GET(self):  # noqa
         if self.headers.get('Authorization') is None:
@@ -60,15 +66,11 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             # Parse and process parameters in URL
             parsed = urlparse(self.path)
             try:
-                answer = self._get_page(parsed.path, parse_qs(parsed.query, keep_blank_values=True))
+                self._reply_page_and_headers(parsed.path, parse_qs(parsed.query, keep_blank_values=True))
             except ValueError:
                 self.send_error(404, 'Not found')
                 self.end_headers()
                 return
-
-            self.do_HEAD()
-            answer = z5r.inject_top_bar(answer)
-            self.wfile.write(answer.encode('utf-8'))
         else:
             self.do_AUTHHEAD()
             self.wfile.write(self.headers.get('Authorization').encode('utf-8'))
@@ -155,12 +157,20 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             logging.debug('Sent: {}'.format(answer))
             self.wfile.write(answer)
         else:
-            self.send_response(200)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
-            answer = 'Dummy'
-            answer = answer.encode('utf-8')
-            self.wfile.write(answer)
+            ctype, pdict = cgi.parse_header(self.headers.get('content-type'))
+            if ctype == 'multipart/form-data':
+                postvars = cgi.parse_multipart(self.rfile, pdict)
+            elif ctype == 'application/x-www-form-urlencoded':
+                length = int(self.headers.get('content-length'))
+                postvars = parse_qs(self.rfile.read(length).decode('utf-8'), keep_blank_values=True)
+            else:
+                postvars = {}
+            try:
+                self._reply_page_and_headers(parsed.path, postvars)
+            except ValueError:
+                self.send_error(404, 'Not found')
+                self.end_headers()
+                return
 
 
 def _check_table():
