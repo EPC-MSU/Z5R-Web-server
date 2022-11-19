@@ -50,6 +50,13 @@ def validate_em_marine(code_string):
         return False
 
 
+def validate_hex(code_string):
+    if re.fullmatch('[0-9a-fA-F]{12}', code_string) is not None:
+        return True
+    else:
+        return False
+
+
 def inject_top_bar(page):
     index_body = page.find('<body>')
     index_style = page.find('<style>')

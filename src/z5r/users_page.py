@@ -1,5 +1,5 @@
 import sqlite3
-from .common import em_marine, get_users_list, validate_em_marine, em_marine2hex
+from .common import em_marine, get_users_list, validate_em_marine, em_marine2hex, validate_hex
 
 
 MAX_GET_CARDS_FORM = 2000 // 50 - 10  # GET request is limited to 2k in the worst case. Each entry = 50. And margin.
@@ -18,11 +18,11 @@ def _update_users(query):
     con.commit()
 
 
-def _add_one_user(name, card, em_marine, method):
+def _add_one_user(name, card, method):
     if method == 'HEX':
         card_key = card
     elif method == 'em_marine':
-        card_key = em_marine2hex(em_marine)
+        card_key = em_marine2hex(card)
     else:  # Only support 2 methods
         return
     con = sqlite3.connect('service_data/z5r.db')
@@ -67,13 +67,13 @@ def users_handler(query, controllers_dict):
             return
         if query['name_manual'][0] == '':  # Name must not be empty for new users
             return
-        if len(query['card_manual'][0]) == 12:  # Validate card number via length (lousy way)
+        if validate_hex(query['card_manual'][0]):  # Validate card number as HEX
             method = 'HEX'
-        elif validate_em_marine(query['em_marine_manual'][0]):  # Validate em_marine
+        elif validate_em_marine(query['card_manual'][0]):  # Validate as em_marine
             method = 'em_marine'
         else:
             return
-        _add_one_user(query['name_manual'][0], query['card_manual'][0], query['em_marine_manual'][0], method)
+        _add_one_user(query['name_manual'][0], query['card_manual'][0], method)
 
 
 def _get_all_cards():
@@ -146,13 +146,9 @@ def get_users_page():
         <label for="name_manual">Name:</label>
         <input type="text" id="name_manual" name="name_manual" value="" maxlength="30">
         </td>
-        <td>
-        <label for="card_manual">Card HEX:</label>
+        <td colspan="2">
+        <label for="card_manual">Card HEX or Em-Marine:</label>
         <input type="text" id="card_manual" name="card_manual" value="" maxlength="12">
-        </td>
-        <td>
-        <label for="em_marine_manual">Em-Marine:</label>
-        <input type="text" id="em_marine_manual" name="em_marine_manual" value="" maxlength="9">
         </td>
         <td>
         <button name="add_one" type="submit" value="">Add user</button>
