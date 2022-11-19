@@ -202,11 +202,10 @@ class TestCommon(TestCase):
     def test_get_events_by_date(self):
         try:
             DAY_TO_SHOW = 3
-            start = datetime.now().date() - timedelta(DAY_TO_SHOW)  # The end of this day
-            days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
-            for day in range(0, DAY_TO_SHOW + 1):
-                get_events_by_date(days[day], days[day + 1], controller_filter=str(0), card_filter=True)
-                get_events_by_date(days[day], days[day + 1])
+            start = datetime.fromtimestamp(0)
+            end = datetime.now()
+            get_events_by_date(start, end, controller_filter=str(0), card_filter=True)
+            get_events_by_date(start, end)
 
         except Exception:
             self.assertTrue(False)
