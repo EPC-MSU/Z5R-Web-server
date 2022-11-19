@@ -11,7 +11,7 @@ services:
     volumes:
       - z5r-server:/app/service_data
     ports:
-      - "8080:8080"
+      - "80:80"
 
 volumes:
   z5r-server:
