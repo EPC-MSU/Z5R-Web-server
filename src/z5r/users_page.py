@@ -50,6 +50,7 @@ def users_handler(query, controllers_dict):
             _update_controllers(query, controllers_dict)
         else:
             pass
+
     elif 'delete' in query:
         con = sqlite3.connect('service_data/z5r.db')
         cur = con.cursor()
@@ -58,6 +59,9 @@ def users_handler(query, controllers_dict):
             return
         cur.execute(f'DELETE FROM users WHERE card == "{card}"')
         con.commit()
+        for sn in controllers_dict:
+            controllers_dict[sn].del_card(card)
+
     elif 'add_one' in query:
         method = None
         if query['add_one'][0] != '':  # Button have no value
@@ -180,7 +184,7 @@ def get_users_page():
         {em_marine(card)}
         </td>
         <td>
-        <button name="delete" type="submit" value="{card}">Delete user</button>
+        <button name="delete" type="submit" value="{card}">Delete & block user</button>
         </td>
         </tr>"""
         processed_cards.append(card)
