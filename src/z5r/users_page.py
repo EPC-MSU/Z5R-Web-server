@@ -106,45 +106,60 @@ def get_users_page():
     </td>
     """
 
-    cards = _get_all_cards()
+    # Prepare data
     users = get_users_list()
-    lowrow = ''
+    cards = _get_all_cards()
+    processed_cards = list()
+    cards_count = 0
 
-    for card in cards[:MAX_GET_CARDS_FORM]:
-        row = """
+    # First section is known users
+    for card in users:
+        answer +=  f"""
         <tr>
-        <td>"""
-
-        if card in users:
-            name = users[card]
-        else:
-            name = ''
-
-        row += f"""
+        <td>
         <label for="name_{card}">Name:</label>
-        <input type="text" id="name_{card}" name="name_{card}" value="{name}" maxlength="30">
+        <input type="text" id="name_{card}" name="name_{card}" value="{users[card]}" maxlength="30">
         </td>
         <td>
-        """
-
-        row += f"""
         {card}
         </td>
         <td>
         {em_marine(card)}
         </td>
-        <td>"""
-
-        if name != '':  # This user has a name
-            row += f'<button name="delete" type="submit" value="{card}">Delete user</button>'
-        row += """
+        <td>
+        <button name="delete" type="submit" value="{card}">Delete user</button>
         </td>
         </tr>"""
-        if name != '':  # Priority for registered users with a name
-            answer += row
-        else:
-            lowrow += row
-    answer += lowrow
+        processed_cards.append(card)
+
+        cards_count += 1
+        if cards_count >= MAX_GET_CARDS_FORM:
+            break
+
+    # Then go unknown cards
+    for card in cards:
+        if card in processed_cards:  # We do not process the cards that were processed in first section
+            continue
+
+        cards_count += 1
+        if cards_count >= MAX_GET_CARDS_FORM:
+            break
+
+        answer += f"""
+        <tr>
+        <td>
+        <label for="name_{card}">Name:</label>
+        <input type="text" id="name_{card}" name="name_{card}" value="" maxlength="30">
+        </td>
+        <td>
+        {card}
+        </td>
+        <td>
+        {em_marine(card)}
+        </td>
+        <td>
+        </td>
+        </tr>"""
 
     # Table end
     answer += """
@@ -152,7 +167,7 @@ def get_users_page():
     </table>
     </form>"""
 
-    if len(cards) > MAX_GET_CARDS_FORM:
+    if cards_count >= MAX_GET_CARDS_FORM:
         answer += f"""
         <p style="color: red; font-size: x-large;">Card number limit {MAX_GET_CARDS_FORM} reached. Rewrite code.</p>
         """
