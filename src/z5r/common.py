@@ -15,7 +15,7 @@ def get_events_by_date(start_datetime, end_datetime, card_filter=False, controll
         sql_flt = ''
 
     if controller_filter:
-        cnt_flt = ' AND controller != "{}"'.format(controller_filter)
+        cnt_flt = ' AND controller == {}'.format(controller_filter)
     else:
         cnt_flt = ''
 
@@ -23,8 +23,8 @@ def get_events_by_date(start_datetime, end_datetime, card_filter=False, controll
     cur = con.cursor()
     cur.execute(
         'SELECT time, card, event_name FROM events WHERE time > {} AND time < {}{}{} ORDER BY time'.format(
-            int(start_datetime.timestamp()), int(end_datetime.timestamp()), sql_flt, cnt_flt
-        ))
+            int(start_datetime.timestamp()), int(end_datetime.timestamp()), sql_flt, cnt_flt)
+    )
     return cur.fetchall()
 
 
