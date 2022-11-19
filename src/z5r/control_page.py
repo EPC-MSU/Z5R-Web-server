@@ -164,7 +164,7 @@ Delete all cards stored in controller memory.
     start = datetime.now().date() - timedelta(DAY_TO_SHOW)  # The end of this day
     days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
     for day in range(0, DAY_TO_SHOW + 1):
-        res = get_events_by_date(days[day], days[day + 1])
+        res = get_events_by_date(days[day], days[day + 1], controller_filter=str(sn))
         if len(res) == 0:
             continue
         answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))

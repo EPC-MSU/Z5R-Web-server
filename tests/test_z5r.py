@@ -1,8 +1,11 @@
 from unittest import TestCase
 from src.z5r import Z5RWebController
 from src.z5r.users_page import _get_all_cards, _update_users
+from src.z5r.common import get_events_by_date
 import os
 import binascii
+from datetime import datetime
+from datetime import timedelta
 
 
 os.chdir(os.path.dirname(__file__) + '/..')
@@ -190,6 +193,20 @@ class TestUsersPage(TestCase):
                 {'name_000000000001' : 'test_update_users1'},
                 {'name_000000000002': 'test_update_users2'}
                      ]
-            cards = _update_users(query)
+            _update_users(query)
+        except Exception:
+            self.assertTrue(False)
+
+
+class TestCommon(TestCase):
+    def test_get_events_by_date(self):
+        try:
+            DAY_TO_SHOW = 3
+            start = datetime.now().date() - timedelta(DAY_TO_SHOW)  # The end of this day
+            days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
+            for day in range(0, DAY_TO_SHOW + 1):
+                get_events_by_date(days[day], days[day + 1], controller_filter=str(0), card_filter=True)
+                get_events_by_date(days[day], days[day + 1])
+
         except Exception:
             self.assertTrue(False)

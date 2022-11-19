@@ -8,16 +8,22 @@ def get_users_list():
     return dict(cur.fetchall())
 
 
-def get_events_by_date(start_datetime, end_datetime, card_filter=False):
+def get_events_by_date(start_datetime, end_datetime, card_filter=False, controller_filter=False):
     if card_filter:
         sql_flt = ' AND card != "000000000000"'
     else:
         sql_flt = ''
+
+    if controller_filter:
+        cnt_flt = ' AND controller != "{}"'.format(controller_filter)
+    else:
+        cnt_flt = ''
+
     con = sqlite3.connect('service_data/z5r.db')
     cur = con.cursor()
     cur.execute(
-        'SELECT time, card, event_name FROM events WHERE time > {} AND time < {}{} ORDER BY time'.format(
-            int(start_datetime.timestamp()), int(end_datetime.timestamp()), sql_flt
+        'SELECT time, card, event_name FROM events WHERE time > {} AND time < {}{}{} ORDER BY time'.format(
+            int(start_datetime.timestamp()), int(end_datetime.timestamp()), sql_flt, cnt_flt
         ))
     return cur.fetchall()
 
