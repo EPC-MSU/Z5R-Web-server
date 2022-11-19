@@ -10,7 +10,7 @@ def _update_users(query):
     cur = con.cursor()
 
     for key in query:
-        if len(key) != 17 or query[key][0] == '':
+        if len(key) != 17 or query[key][0] == '':  # Do not add users with empty names or invalid key length
             continue
         if key.startswith('name_'):
             cur.execute(f'INSERT OR REPLACE INTO users VALUES ("{key[5:18]}", "{query[key][0]}")')
@@ -73,6 +73,7 @@ def get_users_page():
     table, th, td {
       border: 1px solid black;
       border-collapse: collapse;
+      text-align: center
     }
 
     div {
@@ -92,8 +93,8 @@ def get_users_page():
     # Table start
     answer += """
     <form action="/users" id="users_form" method="get">
-    <button name="action" type="submit" value="update_users" width="20%">Update users</button>
-    <button name="action" type="submit" value="update_controllers" width="20%">
+    <button name="action" type="submit" value="update_users">Update users</button>
+    <button name="action" type="submit" value="update_controllers">
         Update controllers with all user keys with names
     </button>
     <table style="width: 100%;">
@@ -146,7 +147,7 @@ def get_users_page():
     # Insert separator
     answer += """
         <tr>
-        <td colspan="4" align="center" style="background-color:lightgray">
+        <td colspan="4" style="background-color:lightgray">
         Unknown cards
         </td>
         </tr>"""
