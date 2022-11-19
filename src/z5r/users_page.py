@@ -93,13 +93,13 @@ def get_users_page():
     <tbody>
     <tr>
     <td>
+    Name
+    </td>
+    <td>
     Card HEX
     </td>
     <td>
     Card Em-Marine
-    </td>
-    <td>
-    Name
     </td>
     <td>
     Control
@@ -111,14 +111,8 @@ def get_users_page():
     lowrow = ''
 
     for card in cards[:MAX_GET_CARDS_FORM]:
-        row = f"""
+        row = """
         <tr>
-        <td>
-        {card}
-        </td>
-        <td>
-        {em_marine(card)}
-        </td>
         <td>"""
 
         if card in users:
@@ -132,6 +126,15 @@ def get_users_page():
         </td>
         <td>
         """
+
+        row += f"""
+        {card}
+        </td>
+        <td>
+        {em_marine(card)}
+        </td>
+        <td>"""
+
         if name != '':  # This user has a name
             row += f'<button name="delete" type="submit" value="{card}">Delete user</button>'
         row += """
