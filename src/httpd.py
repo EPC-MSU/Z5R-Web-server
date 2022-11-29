@@ -176,10 +176,15 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 def _check_table():
     con = sqlite3.connect('service_data/z5r.db')
     cur = con.cursor()
+
     cur.execute('SELECT name FROM sqlite_master WHERE "name"="users"')
     if cur.fetchone() is None:
         cur.execute('CREATE TABLE users(card, username)')
         cur.execute('CREATE UNIQUE INDEX card_index ON users (card)')
+
+    res = cur.execute('SELECT name FROM sqlite_master WHERE "name"="events"')
+    if res.fetchone() is None:
+        cur.execute('CREATE TABLE events(controller, time, card, event_name, event_code, flags)')
 
 
 def run():

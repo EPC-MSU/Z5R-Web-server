@@ -68,11 +68,6 @@ class Z5RWebController:
         self.mode = None
         self.event_file = open('service_data/{}_events.log'.format(sn), 'a')
         self.con = sqlite3.connect('service_data/z5r.db')
-        # Check that this database is valid
-        cur = self.con.cursor()
-        res = cur.execute('SELECT name FROM sqlite_master WHERE "name"="events"')
-        if res.fetchone() is None:
-            cur.execute('CREATE TABLE events(controller, time, card, event_name, event_code, flags)')
 
     def __del__(self):
         self.event_file.close()
