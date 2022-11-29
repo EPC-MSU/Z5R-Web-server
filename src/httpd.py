@@ -153,6 +153,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 z5r_dict[sn].get_interval(),
                 json.dumps(z5r_dict[sn].get_messages(max_size=1500))
             )
+            answer = answer.replace(" ","")
             answer = answer.encode('utf-8')
             logging.debug('Sent: {}'.format(answer))
             self.wfile.write(answer)
@@ -189,7 +190,7 @@ def _check_table():
 
 def run():
     try:
-        logging.basicConfig(filename='service_data/z5r.log', level=logging.WARNING)
+        logging.basicConfig(filename='service_data/z5r.log', level=logging.DEBUG)
     except FileNotFoundError as e:
         print(e)
         print('There is no service_data folder in the root of the service folder. '
