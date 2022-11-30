@@ -139,6 +139,14 @@ class Z5RWebController:
             event_time = int(time.mktime(
                 datetime.datetime.strptime(event.get('time'), '%Y-%m-%d %H:%M:%S').timetuple()
             ))
+
+            # If time is about 100 years in the future (one device had this problem) - fix it
+            now = datetime.datetime.now()
+            fut99y = now.replace(now.year + 99)
+            fut101y = now.replace(now.year + 101)
+            if event_time > fut99y and event_time < fut101y:
+                event_time = event_time.replace(event_time.year - 100)
+
             card = event.get('card')
             event_type = int(event.get('event'))
             flag = int(event.get('flag'))
