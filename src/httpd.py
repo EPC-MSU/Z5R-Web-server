@@ -146,7 +146,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     logging.error('Unknown operation {} from {} sn {}'.format(operation, device_type, sn))
 
             self.send_response(200)
-            self.send_header('Content-type', 'application/json')
+            # self.send_header('Content-type', 'application/json')
             self.end_headers()
             answer = '{"date":"%s","interval":%d,"messages":%s}' % (
                 time.strftime('%Y-%m-%d %H:%M:%S'),
