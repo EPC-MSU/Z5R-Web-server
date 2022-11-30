@@ -74,7 +74,7 @@ class Z5RWebController:
 
     @staticmethod
     def _generate_id():
-        return random.randint(0, 2 ** 31 - 1)
+        return random.randint(0, 9999)
 
     def get_messages(self, max_size=0):
         if max_size == 0:  # Maximum size unlimited
