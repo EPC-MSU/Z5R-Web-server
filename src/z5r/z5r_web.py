@@ -136,9 +136,7 @@ class Z5RWebController:
 
     def events_handler(self, events_json, req_id):
         for event in events_json:
-            event_time = int(time.mktime(
-                datetime.datetime.strptime(event.get('time'), '%Y-%m-%d %H:%M:%S').timetuple()
-            ))
+            event_time = datetime.datetime.strptime(event.get('time'), '%Y-%m-%d %H:%M:%S')
 
             # If time is about 100 years in the future (one device had this problem) - fix it
             now = datetime.datetime.now()
@@ -146,6 +144,8 @@ class Z5RWebController:
             fut101y = now.replace(now.year + 101)
             if event_time > fut99y and event_time < fut101y:
                 event_time = event_time.replace(event_time.year - 100)
+
+            event_unixtime = int(time.mktime(event_time.timetuple()))
 
             card = event.get('card')
             event_type = int(event.get('event'))
@@ -156,14 +156,14 @@ class Z5RWebController:
             # Write all events into database
             cur = self.con.cursor()
             cur.executemany('INSERT INTO events VALUES(?, ?, ?, ?, ?, ?)', [
-                (self.sn, event_time, card, event_names[event_type], event_type, flag)
+                (self.sn, event_unixtime, card, event_names[event_type], event_type, flag)
             ])
             self.con.commit()
 
             # Write events to separate log file
             if card != '000000000000':
                 self.event_file.write('time {} card {} event "{}" flag {}.\n'.format(
-                    event_time, card, event_names[event_type], flag))
+                    event_unixtime, card, event_names[event_type], flag))
 
         message = {'id': req_id,
                    'operation': 'events',
