@@ -1,5 +1,6 @@
 import sqlite3
 import re
+import logging
 
 
 def get_users_list():
@@ -26,7 +27,10 @@ def get_events_by_date(start_datetime, end_datetime, card_filter=False, controll
         'SELECT time, card, event_name FROM events WHERE time > {} AND time < {}{}{} ORDER BY time'.format(
             int(start_datetime.timestamp()), int(end_datetime.timestamp()), sql_flt, cnt_flt)
     )
-    return cur.fetchall()
+    res = cur.fetchall()
+    logging.debug(f'SQL query for date range ({start_datetime} - {end_datetime}. Card filter {card_filter}. '
+                  f'Controller filter {controller_filter}. Produced {len(res)} results.')
+    return res
 
 
 def em_marine(card_hex):

@@ -153,7 +153,6 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 z5r_dict[sn].get_interval(),
                 json.dumps(z5r_dict[sn].get_messages(max_size=1500))
             )
-            # answer = answer.replace(" ","")
             answer = answer.encode('utf-8')
             logging.debug('Sent: {}'.format(answer))
             self.wfile.write(answer)
