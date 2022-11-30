@@ -144,6 +144,7 @@ class Z5RWebController:
             fut101y = now.replace(now.year + 101)
             if event_time > fut99y and event_time < fut101y:
                 event_time = event_time.replace(event_time.year - 100)
+                logging.warning('Event had time 100 years ahead. Fixed.')
 
             event_unixtime = int(time.mktime(event_time.timetuple()))
 
@@ -161,9 +162,8 @@ class Z5RWebController:
             self.con.commit()
 
             # Write events to separate log file
-            if card != '000000000000':
-                self.event_file.write('time {} card {} event "{}" flag {}.\n'.format(
-                    event_unixtime, card, event_names[event_type], flag))
+            self.event_file.write('time {} card {} event "{}" flag {}.\n'.format(
+                event_unixtime, card, event_names[event_type], flag))
 
         message = {'id': req_id,
                    'operation': 'events',
