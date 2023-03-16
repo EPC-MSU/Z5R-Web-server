@@ -186,8 +186,8 @@ class Z5RWebController:
                    'cards': [
                        {
                            'card': str(card),
-                           'flags': str(flags),
-                           'tz': str(tz)
+                           'flags': int(flags),
+                           'tz': int(tz)
                        }
                    ]
                    }
