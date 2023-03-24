@@ -10,16 +10,29 @@
 docker-compose используется для подключения volume с пользовательскими данными, которые собирает и использует сервер.
 Это позволяет отделить код от данных, а данные бэкапить или легко мигрировать.  
 Для запуска сервиса находясь в корне репозитория нужно запустить docker-compose:
+
 ```bash
 sudo docker-compose up -d
 ```
 Это должно создать docker image с установленными пакетами, назвать его `z5r-server-image`, далее запустить его
 в контейнере с именем `z5r-server-for-controller`.  
 Если что-то пошло не так, то можно запустить сервис в текущей консоли и посмотреть логи:
+
 ```bash
 sudo docker-compose up
 ```
 Также для отладки проблем смотри информацию для разработчика.
+
+### Quickstart
+
+Полный перечень команд для запуска на чистом Linux
+
+```bash
+sudo apt install git -y
+sudo apt install docker-compose -y
+git clone https://github.com/EPC-MSU/Z5R-Web-server.git
+cd Z5R-Web-server/
+```
 
 ### Использование
 
@@ -32,6 +45,7 @@ password: im_mellon
 
 Эти значения можно поменять в volume docker в файле auth.
 Например, с помощью `nano`, зайдя в работающий контейнер:
+
 ```bash
 sudo docker exec -it z5r-server-for-controller bash
 nano service_data/auth
@@ -68,7 +82,7 @@ tox
 Или можно запустить приложение через
 ```bash
 python3 src/httpd.py
-```   
+```
 Для отладки работающего приложения выйдите из image. На хосте запустите
 ```bash
 sudo docker-compose up -d
@@ -102,7 +116,7 @@ sudo apt-get install python3.10-distutils
 Далее смотри запуск **для другого Linux**
 
 ### Для другого Linux
- 
+
 Нужно будет создать папку service_data в корне репозитория для пользовательских данных 
 (в docker-compose туда монтируется docker volume):
 ```bash
