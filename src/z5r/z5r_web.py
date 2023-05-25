@@ -136,26 +136,31 @@ class Z5RWebController:
 
     def events_handler(self, events_json, req_id):
         for event in events_json:
-            event_time = int(time.mktime(
-                datetime.datetime.strptime(event.get('time'), '%Y-%m-%d %H:%M:%S').timetuple()
-            ))
-            card = event.get('card')
-            event_type = int(event.get('event'))
-            flag = int(event.get('flag'))
-            logging.info('Event: sn {} with card {} and event "{}" flag {} on {}]'.format(
-                self.sn, card, event_names[event_type], flag, event.get('time')))
+            try:
+                event_time = int(time.mktime(
+                    datetime.datetime.strptime(event.get('time'), '%Y-%m-%d %H:%M:%S').timetuple()
+                ))
+                card = event.get('card')
+                event_type = int(event.get('event'))
+                flag = int(event.get('flag'))
+                logging.info('Event: sn {} with card {} and event "{}" flag {} on {}]'.format(
+                    self.sn, card, event_names[event_type], flag, event.get('time')))
 
-            # Write all events into database
-            cur = self.con.cursor()
-            cur.executemany('INSERT INTO events VALUES(?, ?, ?, ?, ?, ?)', [
-                (self.sn, event_time, card, event_names[event_type], event_type, flag)
-            ])
-            self.con.commit()
+                # Write all events into database
+                cur = self.con.cursor()
+                cur.executemany('INSERT INTO events VALUES(?, ?, ?, ?, ?, ?)', [
+                    (self.sn, event_time, card, event_names[event_type], event_type, flag)
+                ])
+                self.con.commit()
 
-            # Write events to separate log file
-            if card != '000000000000':
-                self.event_file.write('time {} card {} event "{}" flag {}.\n'.format(
-                    event_time, card, event_names[event_type], flag))
+                # Write events to separate log file
+                if card != '000000000000':
+                    self.event_file.write('time {} card {} event "{}" flag {}.\n'.format(
+                        event_time, card, event_names[event_type], flag))
+            # If an event cannot be parsed, contains invalid data etc
+            except ValueError as e:
+                # Drop event handling because it is the most sane thing to do
+                logging.warning('ValueError on controller {}: {}]'.format(self.sn, str(e)))
 
         message = {'id': req_id,
                    'operation': 'events',
