@@ -7,7 +7,6 @@ import logging
 import json
 import sqlite3
 
-
 event_names = {0: 'Opened from inside on entrance',
                1: 'Opened from inside on exit',
                2: 'Key not in database on entrance',
@@ -147,11 +146,11 @@ class Z5RWebController:
                     self.sn, card, event_names[event_type], flag, event.get('time')))
 
                 # Write all events into database
-                cur = self.con.cursor()
-                cur.executemany('INSERT INTO events VALUES(?, ?, ?, ?, ?, ?)', [
-                    (self.sn, event_time, card, event_names[event_type], event_type, flag)
-                ])
-                self.con.commit()
+                #cur = self.con.cursor()
+                #cur.executemany('INSERT INTO events VALUES(?, ?, ?, ?, ?, ?)', [
+                #    (self.sn, event_time, card, event_names[event_type], event_type, flag)
+                #])
+                #self.con.commit()
 
                 # Write events to separate log file
                 if card != '000000000000':

@@ -1,18 +1,21 @@
 import sqlite3
 import re
 import logging
+from .dbz5r import  DbZ5R
 
 
 def get_users_list():
-    con = sqlite3.connect('service_data/z5r.db')
-    cur = con.cursor()
-    cur.execute('SELECT card, username from users')
-    return dict(cur.fetchall())
+    #con = sqlite3.connect('service_data/z5r.db')
+    #cur = con.cursor()
+    #cur.execute('SELECT card, username from users')
+    #return dict(cur.fetchall())
+    dbcon = DbZ5R()
+    return dbcon.get_users_cards()
 
 
 def get_events_by_date(start_datetime, end_datetime, card_filter=False, controller_filter=False):
     if card_filter:
-        sql_flt = ' AND card != "000000000000"'
+        sql_flt = ' AND card <> NULL'
     else:
         sql_flt = ''
 
@@ -21,13 +24,17 @@ def get_events_by_date(start_datetime, end_datetime, card_filter=False, controll
     else:
         cnt_flt = ''
 
-    con = sqlite3.connect('service_data/z5r.db')
-    cur = con.cursor()
-    cur.execute(
-        'SELECT time, card, event_name FROM events WHERE time > {} AND time < {}{}{} ORDER BY time'.format(
-            int(start_datetime.timestamp()), int(end_datetime.timestamp()), sql_flt, cnt_flt)
-    )
-    res = cur.fetchall()
+    #con = sqlite3.connect('service_data/z5r.db')
+    #cur = con.cursor()
+    #cur.execute(
+    #    'SELECT time, card, event_name FROM events WHERE time > {} AND time < {}{}{} ORDER BY time'.format(
+    #        int(start_datetime.timestamp()), int(end_datetime.timestamp()), sql_flt, cnt_flt)
+    #)
+    #res = cur.fetchall()
+
+    dbcon = DbZ5R()
+    res = dbcon.get_reg_events(start_datetime, end_datetime, card_filter, controller_filter)
+
     logging.debug(f'SQL query for date range ({start_datetime} - {end_datetime}. Card filter {card_filter}. '
                   f'Controller filter {controller_filter}. Produced {len(res)} results.')
     return res

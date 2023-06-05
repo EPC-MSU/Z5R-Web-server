@@ -1,18 +1,26 @@
 import sqlite3
 from .common import em_marine, get_users_list, validate_em_marine, em_marine2hex, validate_hex
+from .dbz5r import DbZ5R
 
 
 def _update_users(query):
-    con = sqlite3.connect('service_data/z5r.db')
-    cur = con.cursor()
+    #con = sqlite3.connect('service_data/z5r.db')
+    #cur = con.cursor()
 
+    #for key in query:
+    #    if len(key) != 17 or query[key][0] == '':  # Do not add users with empty names or invalid key length
+    #        continue
+    #    if key.startswith('name_'):
+    #        cur.execute(f'INSERT OR REPLACE INTO users VALUES ("{key[5:18]}", "{query[key][0]}")')
+    #
+    #con.commit()
     for key in query:
         if len(key) != 17 or query[key][0] == '':  # Do not add users with empty names or invalid key length
             continue
         if key.startswith('name_'):
-            cur.execute(f'INSERT OR REPLACE INTO users VALUES ("{key[5:18]}", "{query[key][0]}")')
+            dbcon = DbZ5R()
+            dbcon.insert_user_card_list({query[key][0]}, "{key[5:18]}")
 
-    con.commit()
 
 
 def _add_one_user(name, card, method):
@@ -22,10 +30,12 @@ def _add_one_user(name, card, method):
         card_key = em_marine2hex(card)
     else:  # Only support 2 methods
         return
-    con = sqlite3.connect('service_data/z5r.db')
-    cur = con.cursor()
-    cur.execute(f'INSERT OR REPLACE INTO users VALUES ("{card_key}", "{name}")')
-    con.commit()
+    #con = sqlite3.connect('service_data/z5r.db')
+    #cur = con.cursor()
+    #cur.execute(f'INSERT OR REPLACE INTO users VALUES ("{card_key}", "{name}")')
+    #con.commit()
+    dbcon = DbZ5R()
+    dbcon.insert_user_card_list(name, card_key)
 
 
 def _update_controllers(query, controllers_dict):
@@ -52,13 +62,16 @@ def users_handler(query, controllers_dict):
             pass
 
     elif 'delete' in query:
-        con = sqlite3.connect('service_data/z5r.db')
-        cur = con.cursor()
+        #con = sqlite3.connect('service_data/z5r.db')
+        #cur = con.cursor()
         card = query['delete'][0]
         if len(card) != 12:
             return
-        cur.execute(f'DELETE FROM users WHERE card == "{card}"')
-        con.commit()
+        #cur.execute(f'DELETE FROM users WHERE card == "{card}"')
+        #con.commit()
+        dbcon = DbZ5R()
+        dbcon.delete_a_card(card)
+
         for sn in controllers_dict:
             controllers_dict[sn].del_card(card)
 
@@ -78,12 +91,13 @@ def users_handler(query, controllers_dict):
 
 
 def _get_all_cards():
-    con = sqlite3.connect('service_data/z5r.db')
-    cur = con.cursor()
-    cur.execute('SELECT DISTINCT card from events ORDER BY time')
-    res = cur.fetchall()
-    cards = [x[0] for x in res if x[0] != '000000000000']  # Filter and unwrap
-    return cards
+    #con = sqlite3.connect('service_data/z5r.db')
+    #cur = con.cursor()
+    #cur.execute('SELECT DISTINCT card from events ORDER BY time')
+    #res = cur.fetchall()
+    #cards = [x[0] for x in res if x[0] != '000000000000']  # Filter and unwrap
+    dbcon = DbZ5R()
+    return dbcon.get_all_cards()
 
 
 def get_users_page():
@@ -226,3 +240,5 @@ def get_users_page():
 
     answer += tail
     return answer
+
+
