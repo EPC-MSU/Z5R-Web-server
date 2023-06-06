@@ -57,7 +57,7 @@ CREATE TABLE DIR_User(
 
 CREATE TABLE DIR_Card(
     ID int auto_increment primary key,
-    UniqNumber int not null UNIQUE
+    CardId int not null UNIQUE
 
 );
 

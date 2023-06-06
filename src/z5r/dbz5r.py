@@ -1,12 +1,13 @@
 import pymysql
 class DbZ5R:
-    def __init__(self, login='z5r', password='Ahthohj0ooJa'):
+    def __init__(self, host='172.16.131.112',login='z5r', password='Ahthohj0ooJa'):
         self._login = login
         self._password = password
+        self._host = host
         self._con = self.db_connect()
 
     def db_connect(self):
-        return pymysql.connect('localhost', self._login, self._password, 'z5r')
+        return pymysql.connect(host=self._host, user=self._login, password=self._password, database='z5r')
 
     def get_user_names(self):
         with self._con:
@@ -15,13 +16,15 @@ class DbZ5R:
             rows = cur.fetchall()
             return [f"row[0]" for row in enumerate(rows, 1)]
 
+    #здесь не хватает карт без пользователя - не умеет mysql лелать full join
+    #но будут пользователи без карт
     def get_users_cards(self):
         with self._con:
             cur = self._con.cursor()
-            cur.execute("SELECT Name, GROUP_CONCAT(CardId, SEPARATOR ',') FROM DIR_Card "
-                        "LEFT JOIN  OPT_User_Cards ON DIR_Card.ID = "
-                        "OPT_User_Cards.ID_Card RIGHT JOIN DIR_User ON DIR_User.ID = OPT_User_Cards.ID_USER"
-                        "GROUP BY NAME "
+            cur.execute("SELECT Name, GROUP_CONCAT(DISTINCT CardId ORDER BY CardId SEPARATOR ',') FROM OPT_User_Cards "
+                        "RIGHT OUTER JOIN  DIR_Card ON DIR_Card.ID=OPT_User_Cards.ID_Card "
+                        "RIGHT OUTER JOIN DIR_User ON DIR_User.ID = OPT_User_Cards.ID_USER"
+                        "GROUP BY Name"
                         "ORDER BY Name")
             rows = cur.fetchall()
             return [[f"row[0]", f"[row[1]"] for row in enumerate(rows, 1)]
@@ -30,8 +33,9 @@ class DbZ5R:
         if card != '':
             with self._con:
                 cur = self._con.cursor()
-                cur.execute(f'INSERT IGNORE INTO DIR_Card SET CardId=\'{card}\'')
-                cur.execute(f'SELECT ID FROM DIR_Card WHERE CardId=\'{card}\'')
+                int_card = int(card)
+                cur.execute(f'INSERT IGNORE INTO DIR_Card SET CardId=\'{int_card}\'')
+                cur.execute(f'SELECT ID FROM DIR_Card WHERE CardId=\'{int_card}\'')
                 rows = cur.fetchall()
                 return rows[0]
         else:
@@ -52,20 +56,33 @@ class DbZ5R:
         id_user = self.insert_just_user(user)
         if card_list != '':
             for card in card_list.split(','):
-                id_card = self.insert_just_card()
+                id_card = self.insert_just_card(card)
                 if id_card !=-1 and id_user != -1:
                     with self._con:
                         cur = self._con.cursor()
-                        cur.execute(f'INSERT IGNORE INTO OPT_User_Cards SET UserId=\'{id_user}\' CardId=\'{id_card}\'')
+                        cur.execute(f'INSERT IGNORE INTO OPT_User_Cards SET ID_User=\'{id_user}\' ID_Card=\'{id_card}\'')
 
-    def delete_a_card(self, card):
+    def delete_a_card_user_link(self, card):
         with self._con:
             cur = self._con.cursor()
-            cur.execute(f'DELETE IGNORE INTO OPT_User_Cards WHERE CadrId=\'{card}\'')
-    def get_all_cards(self):
+            cur.execute(f'DELETE IGNORE FROM OPT_User_Cards WHERE ID_Card IN (SELECT ID FROM DIR_Card WHERE CardId=\'{card}\')')
+
+    def delete_a_card_totally(self, card):
+        self.delete_a_card_user_link(card)
+        with self._con:
+            cur = self._con.cursor()
+            cur.execute(f'DELETE IGNORE FROM DIR_Card WHERE CardId=\'{card}\'')
+
+    def get_all_registered_cards(self):
         with self._con:
             cur = self._con.cursor()
             cur.execute(f'SELECT CardId FROM DIR_Cards')
+            rows = cur.fetchone()
+            return [f"row[0]" for row in enumerate(rows, 1)]
+    def get_all_any_cards(self):
+        with self._con:
+            cur = self._con.cursor()
+            cur.execute(f'SELECT DISTINCT AnyCardId FROM REG_Event WHERE AnyCardId <> NULL AND AnyCardId <> 0')
             rows = cur.fetchone()
             return [f"row[0]" for row in enumerate(rows, 1)]
 
