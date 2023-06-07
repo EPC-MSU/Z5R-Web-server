@@ -21,21 +21,26 @@ def _update_users(query):
             dbcon = DbZ5R()
             dbcon.insert_user_card_list({query[key][0]}, "{key[5:18]}")
 
+def _add_one_user(name, cards):
+    int_cards = list()
+    for card in cards.split(';'):
+        method = None
+        if validate_hex(card):  # Validate card number as HEX
+            method = 'HEX'
+        elif validate_em_marine(card):  # Validate as em_marine
+            method = 'em_marine'
+        else:
+            return
 
-
-def _add_one_user(name, card, method):
-    if method == 'HEX':
-        card_key = card
-    elif method == 'em_marine':
-        card_key = em_marine2hex(card)
-    else:  # Only support 2 methods
-        return
-    #con = sqlite3.connect('service_data/z5r.db')
-    #cur = con.cursor()
-    #cur.execute(f'INSERT OR REPLACE INTO users VALUES ("{card_key}", "{name}")')
-    #con.commit()
+        if method == 'HEX':
+            card_key = card
+        elif method == 'em_marine':
+            card_key = em_marine2hex(card)
+        else:  # Only support 2 methods
+            continue
+        int_cards.append(int(card, 16))
     dbcon = DbZ5R()
-    dbcon.insert_user_card_list(name, card_key)
+    dbcon.insert_user_card_list(name, int_cards)
 
 
 def _update_controllers(query, controllers_dict):
@@ -50,6 +55,10 @@ def _update_controllers(query, controllers_dict):
                 else:
                     flags = 0
                 controllers_dict[sn].add_card(card, flags, 255)
+                dbcon = DbZ5R()
+                card_list = list()
+                card_list.append(card)
+                dbcon.insert_user_card_list('', card_list)
 
 
 def users_handler(query, controllers_dict):
@@ -70,35 +79,20 @@ def users_handler(query, controllers_dict):
         #cur.execute(f'DELETE FROM users WHERE card == "{card}"')
         #con.commit()
         dbcon = DbZ5R()
-        dbcon.delete_a_card(card)
+        dbcon.delete_a_card_totally(card)
 
         for sn in controllers_dict:
             controllers_dict[sn].del_card(card)
 
     elif 'add_one' in query:
-        method = None
         if query['add_one'][0] != '':  # Button have no value
             return
-        if query['name_manual'][0] == '':  # Name must not be empty for new users
-            return
-        if validate_hex(query['card_manual'][0]):  # Validate card number as HEX
-            method = 'HEX'
-        elif validate_em_marine(query['card_manual'][0]):  # Validate as em_marine
-            method = 'em_marine'
-        else:
-            return
-        _add_one_user(query['name_manual'][0], query['card_manual'][0], method)
+        _add_one_user(query['name_manual'][0], query['card_manual'][0])
 
 
-def _get_all_cards():
-    #con = sqlite3.connect('service_data/z5r.db')
-    #cur = con.cursor()
-    #cur.execute('SELECT DISTINCT card from events ORDER BY time')
-    #res = cur.fetchall()
-    #cards = [x[0] for x in res if x[0] != '000000000000']  # Filter and unwrap
+def _get_all_cards_10_min():
     dbcon = DbZ5R()
-    return dbcon.get_all_cards()
-
+    return dbcon.get_all_any_cards_last_10_min()
 
 def get_users_page():
     head = """
@@ -144,10 +138,10 @@ def get_users_page():
     Name
     </td>
     <td>
-    Card HEX
+    Cards HEX
     </td>
     <td>
-    Card Em-Marine
+    Cards Em-Marine
     </td>
     <td>
     Control
@@ -162,7 +156,7 @@ def get_users_page():
         <input type="text" id="name_manual" name="name_manual" value="" maxlength="30">
         </td>
         <td colspan="2">
-        <label for="card_manual">Card HEX or Em-Marine:</label>
+        <label for="card_manual">Cards HEX or Em-Marine:</label>
         <input type="text" id="card_manual" name="card_manual" value="" maxlength="12">
         </td>
         <td>
@@ -180,57 +174,72 @@ def get_users_page():
 
     # Prepare data
     users = get_users_list()
-    cards = _get_all_cards()
+    cards = _get_all_cards_10_min()
     processed_cards = list()
 
     # First section is known users
-    for card in users:
+    for item in users:
+        card0 = ''
+        em_marine_cards = ''
+        hex_cards = ''
+        name = item[0]
+        cards = item[1]
+        if name is not None:
+            card0 += 'name_' + name + '_'
+        if cards != 'None':
+            card0 += 'card_' + cards.split(',')[0]
+            for card in cards.split(','):
+                if card is not None:
+                    hex_card = '{:012X}'.format(int(card))
+                    processed_cards.append(card)
+                    em_marine_cards += em_marine(hex_card) + ', '
+                    hex_cards += hex_card + ', '
+
+            hex_cards = hex_cards[:-2]
+            em_marine_cards = em_marine_cards[:-2]
+
         answer += f"""
         <tr>
         <td>
-        <label for="name_{card}">Name:</label>
-        <input type="text" id="name_{card}" name="name_{card}" value="{users[card]}" maxlength="30">
+        {name}
+        <td>
+        {hex_cards}
         </td>
         <td>
-        {card}
+        {em_marine_cards}
         </td>
         <td>
-        {em_marine(card)}
-        </td>
-        <td>
-        <button name="delete" type="submit" value="{card}">Delete & block user</button>
+        <button name="delete" type="submit" value="{card0}">Delete & block user</button>
         </td>
         </tr>"""
-        processed_cards.append(card)
 
     # Insert separator
     answer += """
         <tr>
         <td colspan="4" style="background-color:lightgray">
-        Unknown cards
+        Unregistered cards
         </td>
         </tr>"""
 
     # Then go unknown cards
-    for card in cards:
-        if card in processed_cards:  # We do not process the cards that were processed in first section
-            continue
+    if (cards != 'None'):
+        for card in cards:
+            if card in processed_cards:  # We do not process the cards that were processed in first section
+                 continue
 
-        answer += f"""
-        <tr>
-        <td>
-        <label for="name_{card}">Name:</label>
-        <input type="text" id="name_{card}" name="name_{card}" value="" maxlength="30">
-        </td>
-        <td>
-        {card}
-        </td>
-        <td>
-        {em_marine(card)}
-        </td>
-        <td>
-        </td>
-        </tr>"""
+            answer += f"""
+            <tr>
+            <td>
+            </td>
+            <td>
+            {card}
+            </td>
+            <td>
+            {em_marine(card)}
+            </td>
+            <td>
+            </td>
+            </tr>"""
 
     # Table end
     answer += """
