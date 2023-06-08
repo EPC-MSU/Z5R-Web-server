@@ -27,7 +27,7 @@ class DbZ5R:
     def get_users_cards(self):
         with self._con:
             cur = self._con.cursor()
-            cur.execute("SELECT Name, GROUP_CONCAT(DISTINCT CardId ORDER BY CardId SEPARATOR ',') FROM OPT_User_Cards "
+            cur.execute("SELECT Name, GROUP_CONCAT(DISTINCT CardId ORDER BY CardId SEPARATOR ';') FROM OPT_User_Cards "
                         "RIGHT OUTER JOIN  DIR_Card ON DIR_Card.ID=OPT_User_Cards.ID_Card "
                         "RIGHT OUTER JOIN DIR_User ON DIR_User.ID = OPT_User_Cards.ID_USER "
                         "GROUP BY Name "
@@ -37,6 +37,19 @@ class DbZ5R:
                 return list()
             else:
                 return [[f"{row[0]}", f"{row[1]}"] for row in rows]
+
+    def get_cards_registered_free(self):
+        with self._con:
+            cur = self._con.cursor()
+            cur.execute("SELECT CardId, ID_User from OPT_User_Cards"
+                        "RIGHT OUTER JOIN  DIR_Card ON DIR_Card.ID=OPT_User_Cards.ID_Card"
+                        "WHERE ISNULL(Id_User) ")
+
+            rows = cur.fetchall()
+            if rows is None:
+                return list()
+            else:
+                return [f"{row[0]}" for row in rows]
 
     def insert_just_card(self, card):
         if card != '':

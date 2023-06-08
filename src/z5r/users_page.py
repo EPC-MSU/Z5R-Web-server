@@ -94,6 +94,10 @@ def _get_all_cards_10_min():
     dbcon = DbZ5R()
     return dbcon.get_all_any_cards_last_10_min()
 
+def _get_free_registered_cards():
+    dbcon = DbZ5R()
+    return dbcon.get_cards_registered_free()
+
 def get_users_page():
     head = """
     <!DOCTYPE html>
@@ -168,7 +172,7 @@ def get_users_page():
     answer += """
             <tr>
             <td colspan="4" style="background-color:lightgray">
-            Registered users
+            Registered users and cards
             </td>
             </tr>"""
 
@@ -176,6 +180,7 @@ def get_users_page():
     users = get_users_list()
     cards = _get_all_cards_10_min()
     processed_cards = list()
+    free_cards = _get_free_registered_cards()
 
     # First section is known users
     for item in users:
@@ -187,13 +192,13 @@ def get_users_page():
         if name is not None:
             card0 += 'name_' + name + '_'
         if cards != 'None':
-            card0 += 'card_' + cards.split(',')[0]
+            card0 += 'card_' + cards.split(';')[0]
             for card in cards.split(','):
                 if card is not None:
                     hex_card = '{:012X}'.format(int(card))
                     processed_cards.append(card)
-                    em_marine_cards += em_marine(hex_card) + ', '
-                    hex_cards += hex_card + ', '
+                    em_marine_cards += em_marine(hex_card) + '; '
+                    hex_cards += hex_card + '; '
 
             hex_cards = hex_cards[:-2]
             em_marine_cards = em_marine_cards[:-2]
@@ -202,6 +207,7 @@ def get_users_page():
         <tr>
         <td>
         {name}
+        </td>
         <td>
         {hex_cards}
         </td>
@@ -213,11 +219,30 @@ def get_users_page():
         </td>
         </tr>"""
 
+    for free_card in free_cards:
+        free_hex_card = '{:012X}'.format(int(free_card))
+        free_em_marine=em_marine(free_hex_card)
+        free_card0 = 'card_' + free_card
+        answer += f"""
+                <tr>
+                <td>
+                </td>
+                <td>
+                {free_hex_card}
+                </td>
+                <td>
+                {free_em_marine}
+                </td>
+                <td>
+                <button name="delete" type="submit" value="{free_card0}">Delete & block card</button>
+                </td>
+                </tr>"""
+
     # Insert separator
     answer += """
         <tr>
         <td colspan="4" style="background-color:lightgray">
-        Unregistered cards
+        Unregistered cards (last 10 minutes)
         </td>
         </tr>"""
 
