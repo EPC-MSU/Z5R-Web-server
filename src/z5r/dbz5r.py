@@ -41,9 +41,9 @@ class DbZ5R:
     def get_cards_registered_free(self):
         with self._con:
             cur = self._con.cursor()
-            cur.execute("SELECT CardId, ID_User from OPT_User_Cards"
-                        "RIGHT OUTER JOIN  DIR_Card ON DIR_Card.ID=OPT_User_Cards.ID_Card"
-                        "WHERE ISNULL(Id_User) ")
+            cur.execute("SELECT CardId from OPT_User_Cards"
+                        " RIGHT OUTER JOIN  DIR_Card ON DIR_Card.ID=OPT_User_Cards.ID_Card"
+                        " WHERE ISNULL(Id_User) ")
 
             rows = cur.fetchall()
             if rows is None:
@@ -52,14 +52,17 @@ class DbZ5R:
                 return [f"{row[0]}" for row in rows]
 
     def insert_just_card(self, card):
-        if card != '':
+        if card is not None:
             with self._con:
                 cur = self._con.cursor()
-                int_card = card
-                cur.execute(f'INSERT IGNORE INTO DIR_Card SET CardId=\'{int_card}\'')
-                cur.execute(f'SELECT ID FROM DIR_Card WHERE CardId=\'{int_card}\'')
-                rows = cur.fetchall()
-                return rows[0]
+                #request = 'INSERT IGNORE INTO DIR_Card SET CardId=\'{}\''.format(card)
+                card_str = '\'{}\''.format(card)
+                request = 'INSERT IGNORE INTO DIR_Card(CardId) VALUES (' + card_str + ')'
+                cur.execute(request)
+                self._con.commit()
+                cur.execute('SELECT ID FROM DIR_Card WHERE CardId=\'{}\''.format(card))
+                rows = cur.fetchone()
+                return int(f"{rows[0]}")
         else:
             return -1
 
@@ -68,32 +71,88 @@ class DbZ5R:
             with self._con:
                 cur = self._con.cursor()
                 cur.execute(f'INSERT IGNORE INTO DIR_User SET Name=\'{user}\'')
+                self._con.commit()
                 cur.execute(f'SELECT ID FROM DIR_User WHERE Name=\'{user}\'')
                 rows = cur.fetchone()
-                return rows[0]
+                return int(f"{rows[0]}")
         else:
             return -1
 
     def insert_user_card_list(self, user, card_list):
         id_user = self.insert_just_user(user)
-        if card_list != '':
+        self._con = self.db_connect()
+        id_user_str = '{}'.format(id_user)
+        if card_list is not None:
             for card in card_list:
                 id_card = self.insert_just_card(card)
+                self._con = self.db_connect()
                 if id_card !=-1 and id_user != -1:
                     with self._con:
                         cur = self._con.cursor()
-                        cur.execute(f'INSERT IGNORE INTO OPT_User_Cards SET ID_User=\'{id_user}\' ID_Card=\'{id_card}\'')
+                        id_card_str = '{}'.format(id_card)
+                        request = f'INSERT IGNORE INTO OPT_User_Cards(ID_User,ID_Card) VALUES({id_user_str},' \
+                                  f'{id_card_str})'
+                        cur.execute(request)
+                        self._con.commit()
+                        self._con = self.db_connect()
 
-    def delete_a_card_user_link(self, card):
+    def _delete_a_card_user_link(self, card_id):
         with self._con:
             cur = self._con.cursor()
-            cur.execute(f'DELETE IGNORE FROM OPT_User_Cards WHERE ID_Card IN (SELECT ID FROM DIR_Card WHERE CardId=\'{card}\')')
+            card_id_str = '{}'.format(card_id)
+            cur.execute(f'DELETE IGNORE FROM OPT_User_Cards WHERE ID_Card IN (SELECT ID FROM DIR_Card '
+                        f'WHERE ID=\'{card_id_str}\')')
+            self._con.commit()
 
-    def delete_a_card_totally(self, card):
-        self.delete_a_card_user_link(card)
+    def _get_user_card_ids(self, user_name):
         with self._con:
             cur = self._con.cursor()
-            cur.execute(f'DELETE IGNORE FROM DIR_Card WHERE CardId=\'{card}\'')
+            request = f'SELECT ID_Card FROM OPT_User_Cards WHERE ID_User IN (SELECT ID FROM DIR_User ' \
+                      f'WHERE Name=\'{user_name}\')'
+            cur.execute(request)
+            rows = cur.fetchall()
+            if rows is None or rows.count == 0:
+                return list()
+            else:
+                return [f"{row[0]}" for row in enumerate(rows, 1)]
+
+    def get_user_cards(self, user_name):
+        with self._con:
+            cur = self._con.cursor()
+            request = f'SELECT CardId FROM OPT_User_Cards INNER JOIN DIR_Card ON OPT_User_Cards.ID_Card=DIR_Card.ID ' \
+                      f'WHERE ID_User IN (SELECT ID FROM DIR_User ' \
+                      f'WHERE Name=\'{user_name}\')'
+            cur.execute(request)
+            rows = cur.fetchall()
+            if rows is None or rows.count == 0:
+                return list()
+            else:
+                return [f"{row[0]}" for row in enumerate(rows, 1)]
+
+    def _delete_a_card_totally(self, card_id):
+        self._delete_a_card_user_link(card_id)
+        self._con = self.db_connect()
+        with self._con:
+            cur = self._con.cursor()
+            card_id_str = '{}'.format(card_id)
+            cur.execute(f'DELETE IGNORE FROM DIR_Card WHERE ID=\'{card_id_str}\'')
+            self._con.commit()
+
+    def delete_data(self, user_name, card0):
+        if user_name != '':
+            cards_ids = self._get_user_card_ids(user_name)
+            for card_id in cards_ids:
+                self._delete_a_card_totally(card_id)
+                self._con = self.db_connect()
+            cur = self._con.cursor()
+            cur.execute(f'DELETE IGNORE FROM DIR_User WHERE Name=\'{user_name}\'')
+            self._con.commit()
+        # a single card with no user
+        elif card0 != '':
+            cur = self._con.cursor()
+            card_id_str = '{}'.format(card0)
+            cur.execute(f'DELETE IGNORE FROM DIR_Card WHERE CardId=\'{card0}\'')
+            self._con.commit()
 
     def get_all_registered_cards(self):
         with self._con:

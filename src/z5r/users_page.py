@@ -21,6 +21,7 @@ def _update_users(query):
             dbcon = DbZ5R()
             dbcon.insert_user_card_list({query[key][0]}, "{key[5:18]}")
 
+
 def _add_one_user(name, cards):
     int_cards = list()
     for card in cards.split(';'):
@@ -30,17 +31,31 @@ def _add_one_user(name, cards):
         elif validate_em_marine(card):  # Validate as em_marine
             method = 'em_marine'
         else:
-            return
-
+            continue
         if method == 'HEX':
             card_key = card
         elif method == 'em_marine':
             card_key = em_marine2hex(card)
         else:  # Only support 2 methods
             continue
-        int_cards.append(int(card, 16))
+        int_cards.append(int(card_key, 16))
     dbcon = DbZ5R()
     dbcon.insert_user_card_list(name, int_cards)
+
+
+def _delete_data(name, card0, controllers_dict):
+    dbcon = DbZ5R()
+    card_list = list()
+
+    if name !='':
+        card_list = dbcon.get_user_cards(name)
+    elif card0 != '':
+        card_list.append(card0)
+
+    dbcon.delete_data(name, card0)
+    for card in card_list:
+        for sn in controllers_dict:
+            controllers_dict[sn].del_card(card)
 
 
 def _update_controllers(query, controllers_dict):
@@ -71,19 +86,17 @@ def users_handler(query, controllers_dict):
             pass
 
     elif 'delete' in query:
-        #con = sqlite3.connect('service_data/z5r.db')
-        #cur = con.cursor()
-        card = query['delete'][0]
-        if len(card) != 12:
-            return
-        #cur.execute(f'DELETE FROM users WHERE card == "{card}"')
-        #con.commit()
-        dbcon = DbZ5R()
-        dbcon.delete_a_card_totally(card)
+        name_card = query['delete'][0]
+        elist = name_card.split('_')
+        name = ''
+        card0 = ''
+        for i, key in enumerate(elist):
+            if key == 'name':
+                name = elist[i+1]
+            elif key == 'card':
+                card0 = elist[i+1]
 
-        for sn in controllers_dict:
-            controllers_dict[sn].del_card(card)
-
+        _delete_data(name, card0, controllers_dict)
     elif 'add_one' in query:
         if query['add_one'][0] != '':  # Button have no value
             return
@@ -161,10 +174,10 @@ def get_users_page():
         </td>
         <td colspan="2">
         <label for="card_manual">Cards HEX or Em-Marine:</label>
-        <input type="text" id="card_manual" name="card_manual" value="" maxlength="12">
+        <input type="text" id="card_manual" name="card_manual" value="" maxlength="48">
         </td>
         <td>
-        <button name="add_one" type="submit" value="">Add user</button>
+        <button name="add_one" type="submit" value="">Add data</button>
         </td>
         </tr>"""
 
@@ -193,7 +206,7 @@ def get_users_page():
             card0 += 'name_' + name + '_'
         if cards != 'None':
             card0 += 'card_' + cards.split(';')[0]
-            for card in cards.split(','):
+            for card in cards.split(';'):
                 if card is not None:
                     hex_card = '{:012X}'.format(int(card))
                     processed_cards.append(card)
@@ -215,7 +228,7 @@ def get_users_page():
         {em_marine_cards}
         </td>
         <td>
-        <button name="delete" type="submit" value="{card0}">Delete & block user</button>
+        <button name="delete" type="submit" value="{card0}">Delete user & block cards</button>
         </td>
         </tr>"""
 
@@ -234,7 +247,7 @@ def get_users_page():
                 {free_em_marine}
                 </td>
                 <td>
-                <button name="delete" type="submit" value="{free_card0}">Delete & block card</button>
+                <button name="delete" type="submit" value="{free_card0}">Block card</button>
                 </td>
                 </tr>"""
 
@@ -242,7 +255,7 @@ def get_users_page():
     answer += """
         <tr>
         <td colspan="4" style="background-color:lightgray">
-        Unregistered cards (last 10 minutes)
+        Unregistered card events (last 10 minutes)
         </td>
         </tr>"""
 
@@ -250,7 +263,7 @@ def get_users_page():
     if (cards != 'None'):
         for card in cards:
             if card in processed_cards:  # We do not process the cards that were processed in first section
-                 continue
+                continue
 
             answer += f"""
             <tr>
