@@ -1,6 +1,7 @@
 from datetime import datetime
 from datetime import timedelta
 from .common import get_events_by_date, em_marine, get_users_list
+from .dbz5r import DbZ5R
 
 
 DAY_TO_SHOW = 21
@@ -74,7 +75,6 @@ def get_attendance_page():
     </html>
     """
     answer = head
-
     # Start event collapsible view
     start = datetime.now().date() - timedelta(DAY_TO_SHOW)  # The end of this day
     days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
@@ -83,21 +83,11 @@ def get_attendance_page():
         if len(res) == 0:
             continue
 
-        def split_first_last(events_list):
-            card_events = dict()
-            for event in events_list:  # event is [time, card, event_name]
-                if event[1] not in card_events:  # New card in list
-                    card_events[event[1]] = [event[0], event[0]]  # Write it as start and end
-                else:
-                    if event[0] < card_events[event[1]][0]:  # If time of event is earlier than start
-                        card_events[event[1]][0] = event[0]  # Write it as start time
-                    if event[0] > card_events[event[1]][1]:  # If time of event is later than end
-                        card_events[event[1]][1] = event[0]  # Write it as end time
-            return card_events
+        dbcon = DbZ5R()
+        users_cards = dbcon.get_reg_user_card_events_per_day(day)
+        free_cards = dbcon.get_free_reg_cards_events_per_day(day)
+        un_cards = dbcon.get_unregistered_cards_events_per_day(day)
 
-        users_dict = get_users_list()
-
-        work_periods = split_first_last(res)
         answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))
         answer += '<table class="content">'
         answer += """<tr>
@@ -108,17 +98,29 @@ def get_attendance_page():
         <td>Last event</td>
         </tr>"""
 
-        for card in work_periods:
-            if card in users_dict:
-                name = users_dict[card]
-            else:
-                name = ''
+        for card in users_cards:
             answer += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
-                name,
-                card,
-                em_marine(card),
-                datetime.fromtimestamp(int(work_periods[card][0])).strftime('%H:%M:%S'),
-                datetime.fromtimestamp(int(work_periods[card][1])).strftime('%H:%M:%S')
+                card[0],
+                int(card[1], 16),
+                em_marine(int(card[1], 16)),
+                datetime.fromtimestamp(card[2]).strftime('%H:%M:%S'),
+                datetime.fromtimestamp(card[3]).strftime('%H:%M:%S')
+                )
+        for card in free_cards:
+            answer += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
+                '',
+                int(card[0], 16),
+                em_marine(int(card[0], 16)),
+                datetime.fromtimestamp(card[1]).strftime('%H:%M:%S'),
+                datetime.fromtimestamp(card[2]).strftime('%H:%M:%S')
+            )
+        for card in un_cards:
+            answer += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
+                '[Unregistered]',
+                int(card[0], 16),
+                em_marine(int(card[0], 16)),
+                datetime.fromtimestamp(card[1]).strftime('%H:%M:%S'),
+                datetime.fromtimestamp(card[2]).strftime('%H:%M:%S')
             )
         answer += '</table>'
 

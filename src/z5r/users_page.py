@@ -260,7 +260,7 @@ def get_users_page():
         </tr>"""
 
     # Then go unknown cards
-    if (cards != 'None'):
+    if cards != 'None':
         for card in cards:
             if card in processed_cards:  # We do not process the cards that were processed in first section
                 continue

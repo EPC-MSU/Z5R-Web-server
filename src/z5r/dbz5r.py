@@ -38,6 +38,7 @@ class DbZ5R:
             else:
                 return [[f"{row[0]}", f"{row[1]}"] for row in rows]
 
+    # получить в виде отдельного набора зарегистрированные карты без пользователей
     def get_cards_registered_free(self):
         with self._con:
             cur = self._con.cursor()
@@ -179,34 +180,67 @@ class DbZ5R:
             else:
                 return [[f"{row[0]}"] for row in rows]
 
-    def get_reg_events(self, time_start, time_end,  card_filter=False, controller_filter=False):
-        if card_filter:
-            sql_flt = ' AND AnyCardId<>NULL'
-        else:
-            sql_flt = ''
-
-        if controller_filter:
+    def get_reg_user_card_events_per_day(self, time_date, controller_filter=''):
+        if controller_filter != '':
             cnt_flt = ' AND Controller={}'.format(controller_filter)
         else:
             cnt_flt = ''
-
+        time_date_str = time_date.timestamp()
         with self._con:
             cur = self._con.cursor()
-            cur.execute(f'SELECT DT, AnyCardId, Name from REG_Event INNER JOIN CLS_EventType ON REG_Event.ID_EventType='
-                        'CLS_EventType.ID WHERE DT>{} AND DT<{}{}{} '.format(time_start.timestamp(),
-                                                                             time_end.timestamp(),
-                                                                             sql_flt,
-                                                                             cnt_flt))
+            cur.execute(f'SELECT DIR_User.Name, MIN(CardId), MIN(DT), MAX(DT) FROM DIR_User INNER JOIN OPT_User_Cards '
+                        f'ON DIR_User.ID = OPT_User_Cards.ID_User '
+                        f'INNER JOIN DIR_Card ON DIR_Card.ID=OPT_User_Cards.ID_Card INNER JOIN REG_Event ON "'
+                        f'DIR_Card.CardId=AnyCardId WHERE DATE(DT)=DATE(\'{time_date_str}\')'
+                        f' {cnt_flt} GROUP BY Name ORDER BY Name')
+            rows = cur.fetchall()
+            if rows is None:
+                return list()
+            else:
+                return [[f"{row[0]}", f"[{row[1]}", f"[{row[2]}", f"[{row[3]}"] for row in enumerate(rows, 1)]
+
+    def get_free_reg_cards_events_per_day(self, time_date, controller_filter=''):
+        if controller_filter != '':
+            cnt_flt = ' AND Controller={}'.format(controller_filter)
+        else:
+            cnt_flt = ''
+        time_date_str = time_date.timestamp()
+        with self._con:
+            cur = self._con.cursor()
+            cur.execute(f'SELECT CardId, MIN(DT), MAX(DT) FROM DIR_Card INNER JOIN REG_Event ON CardId=AnyCardId '
+                        f'WHERE DIR_Card.ID NOT IN (SELECT ID_Card FROM OPT_User_Cards) '
+                        f'AND DATE(DT)=DATE(\'{time_date_str}\') {cnt_flt} '
+                        f'GROUP BY CardId ORDER BY CardId ')
             rows = cur.fetchall()
             if rows is None:
                 return list()
             else:
                 return [[f"{row[0]}", f"[{row[1]}", f"[{row[2]}"] for row in enumerate(rows, 1)]
 
+    def get_unregistered_cards_events_per_day(self, time_date, controller_filter=''):
+        if controller_filter != '':
+            cnt_flt = ' AND Controller={}'.format(controller_filter)
+        else:
+            cnt_flt = ''
+        time_date_str = time_date.timestamp()
+        with self._con:
+            cur = self._con.cursor()
+            cur.execute(f'SELECT AnyCardId, MIN(DT), MAX(DT) FROM REG_Event WHERE AnyCardId NOT IN '
+                        f'(SELECT CardId FROM DIR_Card) '
+                        f'AND DATE(DT)=DATE(\'{time_date_str}\') {cnt_flt} '
+                        f'GROUP BY AnyCardId ORDER BY AnyCardId ')
+            rows = cur.fetchall()
+            if rows is None:
+                return list()
+            else:
+                return [[f"{row[0]}", f"[{row[1]}", f"[{row[2]}"] for row in enumerate(rows, 1)]
+
+
     def insert_an_event(self, time_event, event_id, card, controller, flag):
         with self._con:
             cur = self._con.cursor()
             cur.execute(f'INSERT INTO REG_Event (DT, ID_EventType, AnyCardId,  Controller, Flag) '
                         'SELECT {}, {}, {} ,{}, {})'.format(time_event.timestamp(), event_id, card, controller, flag))
+            self._con.commit()
 
 
