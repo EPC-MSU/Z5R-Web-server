@@ -1,8 +1,7 @@
 from datetime import datetime
 from datetime import timedelta
-from .common import get_events_by_date, em_marine, get_users_list
+from .common import em_marine
 from .dbz5r import DbZ5R
-
 
 DAY_TO_SHOW = 21
 
@@ -78,17 +77,13 @@ def get_attendance_page():
     # Start event collapsible view
     start = datetime.now().date() - timedelta(DAY_TO_SHOW)  # The end of this day
     days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
-    for day in range(0, DAY_TO_SHOW + 1):
-        res = get_events_by_date(days[day], days[day + 1], card_filter=True)
-        if len(res) == 0:
-            continue
-
+    for day in days:
         dbcon = DbZ5R()
         users_cards = dbcon.get_reg_user_card_events_per_day(day)
         free_cards = dbcon.get_free_reg_cards_events_per_day(day)
         un_cards = dbcon.get_unregistered_cards_events_per_day(day)
 
-        answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))
+        answer += '<button type="button" class="collapsible">{}</button>'.format(day.strftime('%d %b'))
         answer += '<table class="content">'
         answer += """<tr>
         <td>Name</td>
@@ -101,26 +96,26 @@ def get_attendance_page():
         for card in users_cards:
             answer += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
                 card[0],
-                int(card[1], 16),
-                em_marine(int(card[1], 16)),
-                datetime.fromtimestamp(card[2]).strftime('%H:%M:%S'),
-                datetime.fromtimestamp(card[3]).strftime('%H:%M:%S')
+                card[1],
+                em_marine(card[1]),
+                card[2],
+                card[3]
                 )
         for card in free_cards:
             answer += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
                 '',
-                int(card[0], 16),
-                em_marine(int(card[0], 16)),
-                datetime.fromtimestamp(card[1]).strftime('%H:%M:%S'),
-                datetime.fromtimestamp(card[2]).strftime('%H:%M:%S')
+                int(card[0]),
+                em_marine(card[0]),
+                card[1],
+                card[2]
             )
         for card in un_cards:
             answer += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
                 '[Unregistered]',
-                int(card[0], 16),
-                em_marine(int(card[0], 16)),
-                datetime.fromtimestamp(card[1]).strftime('%H:%M:%S'),
-                datetime.fromtimestamp(card[2]).strftime('%H:%M:%S')
+                card[0],
+                em_marine(card[0]),
+                card[1],
+                card[2]
             )
         answer += '</table>'
 

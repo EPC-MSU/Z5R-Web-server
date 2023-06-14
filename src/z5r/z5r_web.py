@@ -6,45 +6,7 @@ import random
 import logging
 import json
 import sqlite3
-
-event_names = {0: 'Opened from inside on entrance',
-               1: 'Opened from inside on exit',
-               2: 'Key not in database on entrance',
-               3: 'Key not in database on exit',
-               4: 'Key in database, door opened on entrance',
-               5: 'Key in database, door opened on exit',
-               6: 'Key in database, access denied on entrance',
-               7: 'Key in database, access denied on exit',
-               8: 'Door opened from network on entrance',
-               9: 'Door opened from network on exit',
-               10: 'Key in database, door locked on entrance',
-               11: 'Key in database, door locked on exit',
-               12: 'Door violation on entrance',
-               13: 'Door violation on exit',
-               14: 'Door kept open timeout on entrance',
-               15: 'Door kept open timeout on exit',
-               16: 'Passed on entrance',
-               17: 'Passed on exit',
-               20: 'Controller reboot',
-               21: 'Power (see flag)',
-               32: 'Door opened on entrance',
-               33: 'Door opened on exit',
-               34: 'Door closed on entrance',
-               35: 'Door closed on exit',
-               37: 'Mode changed (see flags)',
-               38: 'Controller on fire (see flags)',
-               39: 'Security event (see flags)',
-               40: 'No passage during grace period on entrance',
-               41: 'No passage during grace period on exit',
-               48: 'Gateway is entered on entrance',
-               49: 'Gateway is entered on exit',
-               50: 'Gateway blocked on entrance',
-               51: 'Gateway blocked on exit',
-               52: 'Gateway enterance allowed on entrance',
-               53: 'Gateway enterance allowed on exit',
-               54: 'Passage blocked on entrance',
-               55: 'Passage blocked on exit'
-               }
+from .dbz5r import DbZ5R
 
 
 class Z5RWebController:
@@ -134,33 +96,28 @@ class Z5RWebController:
         self.out_pending.append(message)
 
     def events_handler(self, events_json, req_id):
+        events =[]
+        dbcon = DbZ5R()
         for event in events_json:
             try:
-                event_time = int(time.mktime(
-                    datetime.datetime.strptime(event.get('time'), '%Y-%m-%d %H:%M:%S').timetuple()
-                ))
-                card = event.get('card')
+                event_time = datetime.datetime.strptime(event.get('time'), '%Y-%m-%d %H:%M:%S')
+                card = int(event.get('card'), 16)
                 event_type = int(event.get('event'))
                 flag = int(event.get('flag'))
+                event_name = dbcon.get_event_type_desc(event_type)
                 logging.info('Event: sn {} with card {} and event "{}" flag {} on {}]'.format(
-                    self.sn, card, event_names[event_type], flag, event.get('time')))
+                    self.sn, card, event_name, flag, event.get('time')))
 
-                # Write all events into database
-                #cur = self.con.cursor()
-                #cur.executemany('INSERT INTO events VALUES(?, ?, ?, ?, ?, ?)', [
-                #    (self.sn, event_time, card, event_names[event_type], event_type, flag)
-                #])
-                #self.con.commit()
-
+                events.append([event_time, event_type, card, self.sn, flag])
                 # Write events to separate log file
                 if card != '000000000000':
                     self.event_file.write('time {} card {} event "{}" flag {}.\n'.format(
-                        event_time, card, event_names[event_type], flag))
+                        event_time, card, event_name, flag))
             # If an event cannot be parsed, contains invalid data etc
             except ValueError as e:
                 # Drop event handling because it is the most sane thing to do
                 logging.warning('ValueError on controller {}: {}]'.format(self.sn, str(e)))
-
+        dbcon.insert_events(events)
         message = {'id': req_id,
                    'operation': 'events',
                    'events_success': len(events_json)

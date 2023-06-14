@@ -1,8 +1,7 @@
 import logging
-from .common import get_events_by_date
 from datetime import datetime
 from datetime import timedelta
-
+from .dbz5r import DbZ5R
 
 DAY_TO_SHOW = 7
 
@@ -163,15 +162,16 @@ Delete all cards stored in controller memory.
     # Start event collapsible view
     start = datetime.now().date() - timedelta(DAY_TO_SHOW)  # The end of this day
     days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW + 2)]
-    for day in range(0, DAY_TO_SHOW + 1):
-        res = get_events_by_date(days[day], days[day + 1], controller_filter=str(sn))
+    dbcon = DbZ5R()
+    for day in days:
+        res = dbcon.get_any_events_per_day(day, controller_sn=str(sn))
         if len(res) == 0:
             continue
         answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))
         answer += '<div class="content">'
         for row in res:
             answer += '<div>At {} card {} event {}</div>'.format(
-                datetime.fromtimestamp(int(row[0])).strftime('%H:%M:%S'), row[1], row[2]
+                row[0], row[1], row[2]
             )
         answer += '</div>'
     return answer

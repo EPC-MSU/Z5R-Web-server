@@ -1,28 +1,8 @@
 import sqlite3
-from .common import em_marine, get_users_list, validate_em_marine, em_marine2hex, validate_hex
+from .common import em_marine, get_user_cards_list, validate_em_marine, em_marine2hex, validate_hex
 from .dbz5r import DbZ5R
 
-
-def _update_users(query):
-    #con = sqlite3.connect('service_data/z5r.db')
-    #cur = con.cursor()
-
-    #for key in query:
-    #    if len(key) != 17 or query[key][0] == '':  # Do not add users with empty names or invalid key length
-    #        continue
-    #    if key.startswith('name_'):
-    #        cur.execute(f'INSERT OR REPLACE INTO users VALUES ("{key[5:18]}", "{query[key][0]}")')
-    #
-    #con.commit()
-    for key in query:
-        if len(key) != 17 or query[key][0] == '':  # Do not add users with empty names or invalid key length
-            continue
-        if key.startswith('name_'):
-            dbcon = DbZ5R()
-            dbcon.insert_user_card_list({query[key][0]}, "{key[5:18]}")
-
-
-def _add_one_user(name, cards):
+def _add_one_user(name, cards, controllers_dict):
     int_cards = list()
     for card in cards.split(';'):
         method = None
@@ -38,7 +18,15 @@ def _add_one_user(name, cards):
             card_key = em_marine2hex(card)
         else:  # Only support 2 methods
             continue
-        int_cards.append(int(card_key, 16))
+        int_card = int(card_key, 16)
+        int_cards.append(int_card)
+        for sn in controllers_dict:
+            card_hex_str = '{:012X}'. format(int_card)
+            if card_hex_str[0:6] == '000000':
+                flags = 32
+            else:
+                flags = 0
+            controllers_dict[sn].add_card(card_hex_str, flags, 255)
     dbcon = DbZ5R()
     dbcon.insert_user_card_list(name, int_cards)
 
@@ -47,7 +35,7 @@ def _delete_data(name, card0, controllers_dict):
     dbcon = DbZ5R()
     card_list = list()
 
-    if name !='':
+    if name != '':
         card_list = dbcon.get_user_cards(name)
     elif card0 != '':
         card_list.append(card0)
@@ -70,17 +58,11 @@ def _update_controllers(query, controllers_dict):
                 else:
                     flags = 0
                 controllers_dict[sn].add_card(card, flags, 255)
-                dbcon = DbZ5R()
-                card_list = list()
-                card_list.append(card)
-                dbcon.insert_user_card_list('', card_list)
 
 
 def users_handler(query, controllers_dict):
     if 'action' in query:  # Processing global actions
-        if query['action'][0] == 'update_users':
-            _update_users(query)
-        elif query['action'][0] == 'update_controllers':
+        if query['action'][0] == 'update_controllers':
             _update_controllers(query, controllers_dict)
         else:
             pass
@@ -100,16 +82,18 @@ def users_handler(query, controllers_dict):
     elif 'add_one' in query:
         if query['add_one'][0] != '':  # Button have no value
             return
-        _add_one_user(query['name_manual'][0], query['card_manual'][0])
+        _add_one_user(query['name_manual'][0], query['card_manual'][0], controllers_dict)
 
 
 def _get_all_cards_10_min():
     dbcon = DbZ5R()
     return dbcon.get_all_any_cards_last_10_min()
 
+
 def _get_free_registered_cards():
     dbcon = DbZ5R()
     return dbcon.get_cards_registered_free()
+
 
 def get_users_page():
     head = """
@@ -144,9 +128,8 @@ def get_users_page():
     # Table start
     answer += """
     <form action="/users" id="users_form" method="post">
-    <button name="action" type="submit" value="update_users">Update users</button>
     <button name="action" type="submit" value="update_controllers">
-        Update controllers with all user keys with names
+        Force inserting all the registered cards into the controller's DBs
     </button>
     <table style="width: 100%;">
     <tbody>
@@ -190,7 +173,7 @@ def get_users_page():
             </tr>"""
 
     # Prepare data
-    users = get_users_list()
+    users = get_user_cards_list()
     cards = _get_all_cards_10_min()
     processed_cards = list()
     free_cards = _get_free_registered_cards()
