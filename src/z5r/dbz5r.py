@@ -104,7 +104,7 @@ class DbZ5R:
             cursor = self._con.cursor()
             card_id_str = '{}'.format(card_id)
             cursor.execute(f'DELETE IGNORE FROM OPT_User_Cards WHERE ID_Card IN (SELECT ID FROM DIR_Card '
-                        f'WHERE ID=\'{card_id_str}\')')
+                           f'WHERE ID=\'{card_id_str}\')')
             self._con.commit()
 
     def _get_user_card_ids(self, user_name):
@@ -118,7 +118,7 @@ class DbZ5R:
             if rows is None or len(rows) == 0:
                 return list()
             else:
-                return [[f"{row[0]}"] for row in enumerate(rows, 1)]
+                return [[f"{row[1][0]}"] for row in enumerate(rows, 1)]
 
     def get_user_cards(self, user_name):
         self.db_connect()
@@ -132,7 +132,7 @@ class DbZ5R:
             if rows is None or len(rows) == 0:
                 return list()
             else:
-                return [[f"{row}"] for row in enumerate(rows, 1)]
+                return [[f"{row[1][0]}"] for row in enumerate(rows, 1)]
 
     def _delete_a_card_totally(self, card_id):
         self._delete_a_card_user_link(card_id)
@@ -278,7 +278,7 @@ class DbZ5R:
             cursor.execute(f'SELECT Name FROM CLS_EventType '
                            f'WHERE ID={str(event_id)}')
             row = cursor.fetchone()
-            if row is None or len(rows) == 0:
+            if row is None or len(row) == 0:
                 return ''
             else:
                 return f"{row[0]}"

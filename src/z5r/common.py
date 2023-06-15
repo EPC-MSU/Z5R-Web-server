@@ -1,12 +1,6 @@
 import sqlite3
 import re
 import logging
-from .dbz5r import  DbZ5R
-
-
-def get_user_cards_list():
-    dbcon = DbZ5R()
-    return dbcon.get_users_cards()
 
 
 def em_marine(card_hex):

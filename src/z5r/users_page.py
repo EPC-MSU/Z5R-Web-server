@@ -85,6 +85,11 @@ def users_handler(query, controllers_dict):
         _add_one_user(query['name_manual'][0], query['card_manual'][0], controllers_dict)
 
 
+def _get_user_cards_list():
+    dbcon = DbZ5R()
+    return dbcon.get_users_cards()
+
+
 def _get_all_cards_10_min():
     dbcon = DbZ5R()
     return dbcon.get_all_any_cards_last_10_min()
@@ -173,7 +178,7 @@ def get_users_page():
             </tr>"""
 
     # Prepare data
-    users = get_user_cards_list()
+    users = _get_user_cards_list()
     cards = _get_all_cards_10_min()
     processed_cards = list()
     free_cards = _get_free_registered_cards()

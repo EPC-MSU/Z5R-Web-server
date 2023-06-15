@@ -1,7 +1,8 @@
 from unittest import TestCase
 from src.z5r import Z5RWebController
-from src.z5r.users_page import _get_all_cards, _update_users
+from src.z5r.users_page import _get_user_cards_list, _update_users
 from src.z5r.common import get_events_by_date
+from src.z5r.dbz5r import  DbZ5R
 import os
 import binascii
 from datetime import datetime
@@ -177,8 +178,9 @@ class TestZ5RWebController(TestCase):
 class TestUsersPage(TestCase):
     def test_get_all_cards(self):
         try:
-            cards = _get_all_cards()
-            for card in cards:
+            user_cards = _get_user_cards_list()
+
+            for card in   user_cards:
                 if card == '000000000000':
                     raise ValueError('One of the cards have no number (000000000000)')
                 if len(card) != 12:
@@ -200,10 +202,11 @@ class TestUsersPage(TestCase):
 class TestCommon(TestCase):
     def test_get_events_by_date(self):
         try:
-            start = datetime.fromtimestamp(0)
-            end = datetime.now()
-            get_events_by_date(start, end, controller_filter=str(0), card_filter=True)
-            get_events_by_date(start, end)
+            dbcon = DbZ5R()
+            date = datetime.now()
+            dbcon.get_reg_user_card_events_per_day(date)
+            dbcon.get_free_reg_cards_events_per_day(date)
+            dbcon.get_unregistered_cards_events_per_day(date)
 
         except Exception:
             self.assertTrue(False)

@@ -100,19 +100,22 @@ class Z5RWebController:
         dbcon = DbZ5R()
         for event in events_json:
             try:
-                event_time = datetime.datetime.strptime(event.get('time'), '%Y-%m-%d %H:%M:%S')
-                card = int(event.get('card'), 16)
+                event_time_str = event.get('time')
+                event_time = datetime.datetime.strptime(event_time_str, '%Y-%m-%d %H:%M:%S')
+                card_str = event.get('card')
+                card = int(card_str, 16)
                 event_type = int(event.get('event'))
-                flag = int(event.get('flag'))
+                flag_str = event.get('flag')
+                flag = int(flag_str)
                 event_name = dbcon.get_event_type_desc(event_type)
                 logging.info('Event: sn {} with card {} and event "{}" flag {} on {}]'.format(
-                    self.sn, card, event_name, flag, event.get('time')))
+                    self.sn, card_str, event_name, flag_str, event_time_str))
 
                 events.append([event_time, event_type, card, self.sn, flag])
                 # Write events to separate log file
                 if card != '000000000000':
                     self.event_file.write('time {} card {} event "{}" flag {}.\n'.format(
-                        event_time, card, event_name, flag))
+                        event_time, card_str, event_name, flag_str))
             # If an event cannot be parsed, contains invalid data etc
             except ValueError as e:
                 # Drop event handling because it is the most sane thing to do
