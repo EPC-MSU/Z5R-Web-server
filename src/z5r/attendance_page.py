@@ -41,6 +41,9 @@ def get_attendance_page():
     table, th, td {
       border: 1px solid black;
       border-collapse: collapse;
+      padding: 5px;
+      spacing: 5px;
+      text-align: center
     }
 
     div {
@@ -86,11 +89,11 @@ def get_attendance_page():
         answer += '<button type="button" class="collapsible">{}</button>'.format(day.strftime('%d %b'))
         answer += '<table class="content">'
         answer += """<tr>
-        <td>Name</td>
-        <td>Card HEX</td>
-        <td>Card Em-Marine</td>
-        <td>First event</td>
-        <td>Last event</td>
+        <th>Name</th>
+        <th>Card HEX</th>
+        <th>Card Em-Marine</th>
+        <th>First event</th>
+        <th>Last event</th>
         </tr>"""
 
         for card in users_cards:

@@ -1,4 +1,5 @@
 import logging
+
 from datetime import datetime
 from datetime import timedelta
 from .dbz5r import DbZ5R
@@ -167,7 +168,7 @@ Delete all cards stored in controller memory.
         res = dbcon.get_any_events_per_day(day, controller_sn=str(sn))
         if len(res) == 0:
             continue
-        answer += '<button type="button" class="collapsible">{}</button>'.format(days[day].strftime('%d %b'))
+        answer += '<button type="button" class="collapsible">{}</button>'.format(day.strftime('%d %b'))
         answer += '<div class="content">'
         for row in res:
             answer += '<div>At {} card {} event {}</div>'.format(

@@ -1,11 +1,14 @@
 import sqlite3
-from .common import em_marine, get_user_cards_list, validate_em_marine, em_marine2hex, validate_hex
+from .common import em_marine, validate_em_marine, em_marine2hex, validate_hex
 from .dbz5r import DbZ5R
 
+
 def _add_one_user(name, cards, controllers_dict):
+    name = name.strip()
     int_cards = list()
     for card in cards.split(';'):
         method = None
+        card = card.strip()
         if validate_hex(card):  # Validate card number as HEX
             method = 'HEX'
         elif validate_em_marine(card):  # Validate as em_marine
@@ -17,6 +20,8 @@ def _add_one_user(name, cards, controllers_dict):
         elif method == 'em_marine':
             card_key = em_marine2hex(card)
         else:  # Only support 2 methods
+            continue
+        if card_key == '000000000000':
             continue
         int_card = int(card_key, 16)
         int_cards.append(int_card)
@@ -42,28 +47,27 @@ def _delete_data(name, card0, controllers_dict):
 
     dbcon.delete_data(name, card0)
     for card in card_list:
+        card_hex_str = '{:012X}'.format(int(card))
         for sn in controllers_dict:
-            controllers_dict[sn].del_card(card)
+            controllers_dict[sn].del_card(card_hex_str)
 
 
-def _update_controllers(query, controllers_dict):
-    for key in query:
-        if len(key) != 17:
-            continue
-        if key.startswith('name_') and query[key][0] != '':  # User with a name
-            for sn in controllers_dict:
-                card = key[5:18]
-                if card[0:6] == '000000':
-                    flags = 32
-                else:
-                    flags = 0
-                controllers_dict[sn].add_card(card, flags, 255)
+def _update_controllers(controllers_dict):
+    dbcon = DbZ5R()
+    cards = dbcon.get_all_registered_cards()
+    for card in cards:
+        for sn in controllers_dict:
+            if card[0:6] == '000000':
+                flags = 32
+            else:
+                flags = 0
+            controllers_dict[sn].add_card(card, flags, 255)
 
 
 def users_handler(query, controllers_dict):
     if 'action' in query:  # Processing global actions
         if query['action'][0] == 'update_controllers':
-            _update_controllers(query, controllers_dict)
+            _update_controllers(controllers_dict)
         else:
             pass
 
@@ -139,18 +143,18 @@ def get_users_page():
     <table style="width: 100%;">
     <tbody>
     <tr>
-    <td>
+    <th>
     Name
-    </td>
-    <td>
+    </th>
+    <th>
     Cards HEX
-    </td>
-    <td>
+    </th>
+    <th>
     Cards Em-Marine
-    </td>
-    <td>
+    </th>
+    <th>
     Control
-    </td>
+    </th>
     """
 
     # Manual add user
@@ -179,7 +183,7 @@ def get_users_page():
 
     # Prepare data
     users = _get_user_cards_list()
-    cards = _get_all_cards_10_min()
+    cards_to_reg = _get_all_cards_10_min()
     processed_cards = list()
     free_cards = _get_free_registered_cards()
 
@@ -248,8 +252,8 @@ def get_users_page():
         </tr>"""
 
     # Then go unknown cards
-    if cards != 'None':
-        for card in cards:
+    if cards_to_reg != 'None':
+        for card in cards_to_reg:
             if card in processed_cards:  # We do not process the cards that were processed in first section
                 continue
 

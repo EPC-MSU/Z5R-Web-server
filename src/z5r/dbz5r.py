@@ -102,9 +102,7 @@ class DbZ5R:
         self.db_connect()
         with self._con:
             cursor = self._con.cursor()
-            card_id_str = '{}'.format(card_id)
-            cursor.execute(f'DELETE IGNORE FROM OPT_User_Cards WHERE ID_Card IN (SELECT ID FROM DIR_Card '
-                           f'WHERE ID=\'{card_id_str}\')')
+            cursor.execute(f'DELETE IGNORE FROM OPT_User_Cards WHERE ID_Card={card_id}')
             self._con.commit()
 
     def _get_user_card_ids(self, user_name):
@@ -118,7 +116,7 @@ class DbZ5R:
             if rows is None or len(rows) == 0:
                 return list()
             else:
-                return [[f"{row[1][0]}"] for row in enumerate(rows, 1)]
+                return [f"{row[1][0]}" for row in enumerate(rows, 1)]
 
     def get_user_cards(self, user_name):
         self.db_connect()
@@ -132,15 +130,14 @@ class DbZ5R:
             if rows is None or len(rows) == 0:
                 return list()
             else:
-                return [[f"{row[1][0]}"] for row in enumerate(rows, 1)]
+                return [f"{row[1][0]}" for row in enumerate(rows, 1)]
 
     def _delete_a_card_totally(self, card_id):
         self._delete_a_card_user_link(card_id)
         self.db_connect()
         with self._con:
             cursor = self._con.cursor()
-            card_id_str = '{}'.format(card_id)
-            cursor.execute(f'DELETE IGNORE FROM DIR_Card WHERE ID=\'{card_id_str}\'')
+            cursor.execute(f'DELETE IGNORE FROM DIR_Card WHERE ID={card_id}')
             self._con.commit()
 
     def delete_data(self, user_name, card0):
@@ -160,19 +157,19 @@ class DbZ5R:
             with self._con:
                 cursor = self._con.cursor()
                 card_id_str = '{}'.format(card0)
-                cursor.execute(f'DELETE IGNORE FROM DIR_Card WHERE CardId=\'{card0}\'')
+                cursor.execute(f'DELETE IGNORE FROM DIR_Card WHERE CardId={card0}')
                 self._con.commit()
 
     def get_all_registered_cards(self):
         self.db_connect()
         with self._con:
             cursor = self._con.cursor()
-            cursor.execute(f'SELECT CardId FROM DIR_Cards')
+            cursor.execute(f'SELECT CardId FROM DIR_Card')
             rows = cursor.fetchall()
             if rows is None or len(rows) == 0:
                 return list()
             else:
-                return [f"{row[0]}" for row in enumerate(rows, 1)]
+                return [f"{'{:012X}'.format(row[1][0])}" for row in enumerate(rows, 1)]
 
     def get_all_any_cards_last_10_min(self):
         self.db_connect()
@@ -180,15 +177,16 @@ class DbZ5R:
             cursor = self._con.cursor()
             now = datetime.datetime.now()
             now_str = now.strftime('%Y-%m-%d %H:%M:%S')
-            ago_10_min = now - datetime.timedelta(hours=0, minutes=10)
+            ago_10_min = now - datetime.timedelta(hours=0, minutes=50)
             ago_10_min_str = ago_10_min.strftime('%Y-%m-%d %H:%M:%S')
-            cursor.execute(f'SELECT DISTINCT AnyCardId FROM REG_Event WHERE AnyCardId <> NULL AND AnyCardId <> 0'
-                           f' AND DT >= \'{ago_10_min_str}\' AND DT <= \'{now_str}\'')
+            cursor.execute(f'SELECT DISTINCT AnyCardId FROM REG_Event WHERE NOT ISNULL(AnyCardId) AND AnyCardId <> 0'
+                           f' AND DT >= \'{ago_10_min_str}\' AND DT <= \'{now_str}\' AND AnyCardId NOT IN '
+                           f'(SELECT CardId FROM DIR_Card)')
             rows = cursor.fetchall()
             if rows is None or len(rows) == 0:
                 return list()
             else:
-                return [[f"{row[0]}"] for row in rows]
+                return [f"{'{:012X}'.format(row[1][0])}" for row in enumerate(rows, 1)]
 
     def get_reg_user_card_events_per_day(self, time_date):
         time_date_str = time_date.strftime('%Y-%m-%d %H:%M:%S')
@@ -239,10 +237,10 @@ class DbZ5R:
         self.db_connect()
         with self._con:
             cursor = self._con.cursor()
-            cursor.execute(f'SELECT AnyCardId, MIN(DT), MAX(DT) FROM REG_Event WHERE AnyCardId NOT IN '
-                           f'(SELECT CardId FROM DIR_Card) '
+            cursor.execute(f'SELECT AnyCardId, MIN(DT), MAX(DT) FROM REG_Event WHERE  NOT ISNULL(AnyCardId) '
+                           f'AND AnyCardId <> 0 AND AnyCardId NOT IN (SELECT CardId FROM DIR_Card) '
                            f'AND DATE(DT)=DATE(\'{time_date_str}\') '
-                           f'GROUP BY AnyCardId ORDER BY AnyCardId ')
+                           f'GROUP BY AnyCardId ORDER BY AnyCardId')
             rows = cursor.fetchall()
             if rows is None or len(rows) == 0:
                 return list()
@@ -264,12 +262,18 @@ class DbZ5R:
             cursor.execute(f'SELECT DT, AnyCardId, Name FROM REG_Event '
                            f'RIGHT OUTER JOIN CLS_EventType on ID_EventType=CLS_EventType.ID '
                            f'WHERE DATE(DT)=DATE(\'{time_date_str}\') {cnt_flt} '
-                           f'GROUP BY AnyCardId ORDER BY DT')
+                           f'ORDER BY DT')
             rows = cursor.fetchall()
             if rows is None or len(rows) == 0:
                 return list()
             else:
-                return [[f"{row[0].strftime('%H:%M:%S')}", f"{'{:012X}'.format(row[1])}", f"{row[2]}"] for row in rows]
+                ret_list = list()
+                for row in enumerate(rows, 1):
+                    dt = row[1][0].strftime('%H:%M:%S')
+                    card = '{:012X}'.format(row[1][1])
+                    name = row[1][2]
+                    ret_list.append([dt, card, name])
+                return ret_list
 
     def get_event_type_desc(self, event_id):
         self.db_connect()
@@ -287,8 +291,8 @@ class DbZ5R:
         self.db_connect()
         with self._con:
             cursor = self._con.cursor()
-            cursor.executemany("""INSERT IGNORE INTO REG_Event (DT, ID_EventType, AnyCardId,  Controller, Flag) "
-                               "VALUES(%s, %s, %s, %s, %s)""", events)
+            cursor.executemany("INSERT IGNORE INTO REG_Event (DT, ID_EventType, AnyCardId,  Controller, Flag) "
+                               "VALUES(%s, %s, %s, %s, %s)", events)
             self._con.commit()
 
 

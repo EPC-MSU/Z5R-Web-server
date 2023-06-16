@@ -111,9 +111,9 @@ class Z5RWebController:
                 logging.info('Event: sn {} with card {} and event "{}" flag {} on {}]'.format(
                     self.sn, card_str, event_name, flag_str, event_time_str))
 
-                events.append([event_time, event_type, card, self.sn, flag])
+                events.append([event_time, event_type, card, str(self.sn), flag])
                 # Write events to separate log file
-                if card != '000000000000':
+                if card != 0:
                     self.event_file.write('time {} card {} event "{}" flag {}.\n'.format(
                         event_time, card_str, event_name, flag_str))
             # If an event cannot be parsed, contains invalid data etc
