@@ -21,7 +21,24 @@ class DbZ5R:
             if rows is None or len(rows) == 0:
                 return list()
             else:
-                return [f"{row[0]}" for row in enumerate(rows, 0)]
+                return [f"{row[1][0]}" for row in enumerate(rows, 1)]
+
+    def get_user_time(self, name, dt1, dt2):
+        self.db_connect()
+        with self._con:
+            cursor = self._con.cursor()
+            cursor.execute(f'SELECT DATE(DT), MIN(DT), MAX(DT) FROM DIR_User '
+                           f'INNER JOIN OPT_User_Cards ON DIR_User.ID = OPT_User_Cards.ID_User '
+                           f'INNER JOIN DIR_Card ON DIR_Card.ID=OPT_User_Cards.ID_Card INNER JOIN REG_Event ON '
+                           f'DIR_Card.CardId=AnyCardId WHERE DATE(DT)>=DATE(\'{dt1}\') AND DATE(DT)<=DATE(\'{dt2}\') '
+                           f'AND DIR_User.Name =\'{name}\' '
+                           f'GROUP BY DATE(DT) '
+                           f'ORDER BY DATE(DT) ')
+            rows = cursor.fetchall()
+            if rows is None or len(rows) == 0:
+                return list()
+            else:
+                return [[f"{row[1][0]}", f"{row[1][1]}", f"{row[1][2]}"] for row in enumerate(rows, 1)]
 
     # no full join in mysql
     def get_users_cards(self):

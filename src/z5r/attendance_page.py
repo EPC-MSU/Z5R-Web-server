@@ -53,6 +53,9 @@ def get_attendance_page():
     </head>
     <body>
     <h1 style="text-align: center;">Z5R-Web general attendance</h1>
+    <div>
+    <a href="/attendance_filter">Filter</a>
+    </div>
     """
     tail = """
 

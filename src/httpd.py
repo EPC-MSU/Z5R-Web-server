@@ -51,6 +51,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             z5r.users_handler(query, z5r_dict)
             # Display control page
             answer = z5r.get_users_page()
+        elif path == '/attendance_filter':
+            answer = z5r.get_attendance_filter_page(query)
         else:
             raise ValueError('Path not found.')
 
