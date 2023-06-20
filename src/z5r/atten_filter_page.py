@@ -1,9 +1,5 @@
-import sqlite3
 from .dbz5r import DbZ5R
-
-import sqlite3
-from .common import em_marine, validate_em_marine, em_marine2hex, validate_hex
-from .dbz5r import DbZ5R
+import datetime
 
 
 def _attendance_filter_handler(query):
@@ -40,12 +36,9 @@ def get_attendance_filter_page(query):
     dbcon = DbZ5R()
     names = dbcon.get_user_names()
     name_s = ''
-    dt1 = ''
-    dt2 = ''
+
     if len(names) > 0:
         name_s = names[0]
-        dt1 = names[1]
-        dt2 = names[2]
 
     # Prepare data
     user_att = _attendance_filter_handler(query)
@@ -64,13 +57,12 @@ def get_attendance_filter_page(query):
     head += f"""
         </select>
     <label for="dt_start">Start Date:</label>
-        <input type="date" id="dt_start" name="dt_start" value="{dt1}" maxlength="30">
+        <input type="date" id="dt_start" name="dt_start" value="" maxlength="30">
     <label for="dt_start">End Date:</label>
-        <input type="date" id="dt_start" name="dt_end" value="{dt2}" maxlength="30">
+        <input type="date" id="dt_start" name="dt_end" value="" maxlength="30">
     <button name="search" type="submit" value="search">
         Search
     </button>
-    <h2  style="text-align: center;">Results</h2>
 
     """
     tail = """
@@ -85,9 +77,17 @@ def get_attendance_filter_page(query):
     """
 
     user_spy_data = list()
-    if len (user_att) > 0 and user_att[0] != '' and user_att[1] !='' and user_att[2] != '':
+    if len (user_att) > 0 and user_att[0] != '' and user_att[1] != '' and user_att[2] != '':
+        name_u = user_att[0]
+        dt1 = user_att[1]
+        dt2 = user_att[2]
+        head += f"""
+                <h2  style="text-align: center;">Statistics on user {name_u}
+                from {datetime.datetime.strptime(dt1, '%Y-%m-%d').strftime("%d.%m.%Y")} to
+                {datetime.datetime.strptime(dt2, '%Y-%m-%d').strftime("%d.%m.%Y")} </h2>
+        """
         dbcon = DbZ5R()
-        user_spy_data = dbcon.get_user_time(user_att[0], user_att[1], user_att[2])
+        user_spy_data = dbcon.get_user_time(name_u, dt1, dt2)
 
     if len(user_att) != 0:
         answer += """
@@ -109,13 +109,13 @@ def get_attendance_filter_page(query):
                 answer += f"""
                 <tr>
                 <td>
-                {item[0]}
+                {datetime.datetime.strptime(item[0], '%Y-%m-%d').strftime('%d.%m.%Y')}
                 </td>
                 <td>
-                {item[1]}
+                {datetime.datetime.strptime(item[1], '%Y-%m-%d %H:M%:%S').strftime('%H:%M:%S')}
                 </td>
                 <td>
-                {item[2]}
+                {datetime.datetime.strptime(item[2], '%Y-%m-%d %H:%M:%S').strftime('%H:%M:%S')}
                 </td>
                 </tr>"""
 

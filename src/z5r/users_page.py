@@ -39,7 +39,8 @@ def _add_one_user(name, cards, controllers_dict):
 def _delete_data(name, card0, controllers_dict):
     dbcon = DbZ5R()
     card_list = list()
-
+    if name[0] == '[':  # reserved card with no username
+        name = ''
     if name != '':
         card_list = dbcon.get_user_cards(name)
     elif card0 != '':
@@ -94,9 +95,9 @@ def _get_user_cards_list():
     return dbcon.get_users_cards()
 
 
-def _get_all_cards_10_min():
+def _get_non_registered_cards_10_min():
     dbcon = DbZ5R()
-    return dbcon.get_all_any_cards_last_10_min()
+    return dbcon.get_non_registered_cards_last_10_min()
 
 
 def _get_free_registered_cards():
@@ -183,9 +184,8 @@ def get_users_page():
 
     # Prepare data
     users = _get_user_cards_list()
-    cards_to_reg = _get_all_cards_10_min()
-    processed_cards = list()
     free_cards = _get_free_registered_cards()
+    cards_to_reg = _get_non_registered_cards_10_min()
 
     # First section is known users
     for item in users:
@@ -201,7 +201,6 @@ def get_users_page():
             for card in cards.split(';'):
                 if card is not None:
                     hex_card = '{:012X}'.format(int(card))
-                    processed_cards.append(card)
                     em_marine_cards += em_marine(hex_card) + '; '
                     hex_cards += hex_card + '; '
 
@@ -231,6 +230,7 @@ def get_users_page():
         answer += f"""
                 <tr>
                 <td>
+                [Резерв]
                 </td>
                 <td>
                 {free_hex_card}
@@ -252,10 +252,8 @@ def get_users_page():
         </tr>"""
 
     # Then go unknown cards
-    if cards_to_reg != 'None':
+    if cards_to_reg is not None:
         for card in cards_to_reg:
-            if card in processed_cards:  # We do not process the cards that were processed in first section
-                continue
 
             answer += f"""
             <tr>

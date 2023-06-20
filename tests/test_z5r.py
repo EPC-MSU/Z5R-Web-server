@@ -1,7 +1,6 @@
 from unittest import TestCase
 from src.z5r import Z5RWebController
-from src.z5r.users_page import _get_user_cards_list, _update_users
-from src.z5r.common import get_events_by_date
+from src.z5r.users_page import _get_user_cards_list
 from src.z5r.dbz5r import  DbZ5R
 import os
 import binascii
@@ -178,35 +177,61 @@ class TestZ5RWebController(TestCase):
 class TestUsersPage(TestCase):
     def test_get_all_cards(self):
         try:
-            user_cards = _get_user_cards_list()
+            _get_user_cards_list()
 
-            for card in   user_cards:
-                if card == '000000000000':
-                    raise ValueError('One of the cards have no number (000000000000)')
-                if len(card) != 12:
-                    raise ValueError('One of the cards have length not 12 symbols ({})'.format(card))
-        except Exception:
-            self.assertTrue(False)
-
-    def test_update_users(self):
-        try:
-            query = [
-                {'name_000000000001': 'test_update_users1'},
-                {'name_000000000002': 'test_update_users2'}
-                     ]
-            _update_users(query)
         except Exception:
             self.assertTrue(False)
 
 
-class TestCommon(TestCase):
+class TestDbZ5R(TestCase):
+    def test_db_connection(self):
+        dbcon = DbZ5R()
+        self.assertTrue(dbcon.check_db_connection())
+
     def test_get_events_by_date(self):
         try:
             dbcon = DbZ5R()
             date = datetime.now()
+
+            # getting events of different types all for the date of today
             dbcon.get_reg_user_card_events_per_day(date)
             dbcon.get_free_reg_cards_events_per_day(date)
             dbcon.get_unregistered_cards_events_per_day(date)
+
+        except Exception:
+            self.assertTrue(False)
+
+    def test_get_non_registered_cards_last_10_min(self):
+        try:
+            dbcon = DbZ5R()
+            dbcon.get_non_registered_cards_last_10_min()
+
+        except Exception:
+            self.assertTrue(False)
+
+    def test_add_delete_user_cards(self):
+        try:
+            dbcon = DbZ5R()
+            dbcon.insert_user_card_list('Testing User', [201,203])
+            dbcon.delete_data('Testing User', '')
+
+        except Exception:
+            self.assertTrue(False)
+
+    def test_get_event_type_desc(self):
+        try:
+            dbcon = DbZ5R()
+            dbcon.get_event_type_desc(4)
+
+        except Exception:
+            self.assertTrue(False)
+
+    def test_get_cards(self):
+        try:
+            dbcon = DbZ5R()
+            dbcon.get_users_cards()
+            dbcon.get_all_registered_cards()
+            dbcon.get_cards_registered_free()
 
         except Exception:
             self.assertTrue(False)

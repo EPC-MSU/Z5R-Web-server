@@ -5,7 +5,6 @@ import time
 import random
 import logging
 import json
-import sqlite3
 from .dbz5r import DbZ5R
 
 
@@ -28,7 +27,6 @@ class Z5RWebController:
         self.active = None
         self.mode = None
         self.event_file = open('service_data/{}_events.log'.format(sn), 'a')
-        self.con = sqlite3.connect('service_data/z5r.db')
 
     def __del__(self):
         self.event_file.close()

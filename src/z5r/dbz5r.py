@@ -12,6 +12,14 @@ class DbZ5R:
     def db_connect(self):
         self._con = pymysql.connect(host=self._host, user=self._login, password=self._password, database='z5r')
 
+    def check_db_connection(self):
+        try:
+            self.db_connect()
+            self._con.cursor()
+        except pymysql.OperationalError:
+            return False
+        return True
+
     def get_user_names(self):
         self.db_connect()
         with self._con:
@@ -188,13 +196,13 @@ class DbZ5R:
             else:
                 return [f"{'{:012X}'.format(row[1][0])}" for row in enumerate(rows, 1)]
 
-    def get_all_any_cards_last_10_min(self):
+    def get_non_registered_cards_last_10_min(self):
         self.db_connect()
         with self._con:
             cursor = self._con.cursor()
             now = datetime.datetime.now()
             now_str = now.strftime('%Y-%m-%d %H:%M:%S')
-            ago_10_min = now - datetime.timedelta(hours=0, minutes=50)
+            ago_10_min = now - datetime.timedelta(hours=0, minutes=10)
             ago_10_min_str = ago_10_min.strftime('%Y-%m-%d %H:%M:%S')
             cursor.execute(f'SELECT DISTINCT AnyCardId FROM REG_Event WHERE NOT ISNULL(AnyCardId) AND AnyCardId <> 0'
                            f' AND DT >= \'{ago_10_min_str}\' AND DT <= \'{now_str}\' AND AnyCardId NOT IN '
@@ -311,5 +319,10 @@ class DbZ5R:
             cursor.executemany("INSERT IGNORE INTO REG_Event (DT, ID_EventType, AnyCardId,  Controller, Flag) "
                                "VALUES(%s, %s, %s, %s, %s)", events)
             self._con.commit()
+
+
+def check_dbz5r_connection():
+    dbcon = DbZ5R()
+    return dbcon.check_db_connection()
 
 

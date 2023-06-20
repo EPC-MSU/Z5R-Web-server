@@ -53,8 +53,8 @@ def get_attendance_page():
     </head>
     <body>
     <h1 style="text-align: center;">Z5R-Web general attendance</h1>
-    <div>
-    <a href="/attendance_filter">Filter</a>
+    <div border="dotted" font-size="10px">
+    <a href="/attendance_filter">Attendance by filter</a>
     </div>
     """
     tail = """
@@ -109,7 +109,7 @@ def get_attendance_page():
                 )
         for card in free_cards:
             answer += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
-                '',
+                '[Резерв]',
                 int(card[0]),
                 em_marine(card[0]),
                 card[1],
@@ -117,7 +117,7 @@ def get_attendance_page():
             )
         for card in un_cards:
             answer += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
-                '[Unregistered]',
+                '[Не зарегистрирована]',
                 card[0],
                 em_marine(card[0]),
                 card[1],
