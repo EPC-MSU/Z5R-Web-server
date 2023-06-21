@@ -31,24 +31,30 @@ def get_attendance_filter_page(query):
       padding: 5px;
     }
     </style>
+
     </head>
     """
     dbcon = DbZ5R()
     names = dbcon.get_user_names()
     name_s = ''
-
-    if len(names) > 0:
-        name_s = names[0]
+    data_s1 = ''
+    data_s2 = ''
 
     # Prepare data
     user_att = _attendance_filter_handler(query)
+    if len(user_att) > 0:
+        name_s = user_att[0]
+    if len(user_att) > 1:
+        data_s1 = user_att[1]
+    if len(user_att) > 2:
+        data_s2 = user_att[2]
 
     head += f"""
     <body>
     <h1 style="text-align: center;">Z5R Attendance | Filter page</h1>
     <form action="/attendance_filter" id="atten_filter_form" method="post">
     <label for="name_manual">Name:</label>
-        <select name="name_select" value="{name_s}" size="1">
+        <select name="name_select" value="{name_s}" id="name_select" size="1">
         <option selected></option>
     """
     for name in names:
@@ -57,15 +63,15 @@ def get_attendance_filter_page(query):
     head += f"""
         </select>
     <label for="dt_start">Start Date:</label>
-        <input type="date" id="dt_start" name="dt_start" value="" maxlength="30">
+        <input type="date" id="dt_start" name="dt_start" id="dt_start" value="{data_s1}" maxlength="30">
     <label for="dt_start">End Date:</label>
-        <input type="date" id="dt_start" name="dt_end" value="" maxlength="30">
+        <input type="date" id="dt_start" name="dt_end" id="dt_end" value="{data_s2}" maxlength="30">
     <button name="search" type="submit" value="search">
         Search
     </button>
 
     """
-    tail = """
+    tail = f"""
     </form>
     </body>
     </html>
@@ -89,21 +95,20 @@ def get_attendance_filter_page(query):
         dbcon = DbZ5R()
         user_spy_data = dbcon.get_user_time(name_u, dt1, dt2)
 
-    if len(user_att) != 0:
         answer += """
-        <table style="width: 100%;">
-        <tbody>
-        <tr>
-        <th>
-        Date
-        </th>
-        <th>
-        First Time
-        </th>
-        <th>
-        Last Time
-        </th>
-        """
+            <table style="width: 100%;">
+            <tbody>
+            <tr>
+             <th>
+            Date
+            </th>
+            <th>
+            First Time
+            </th>
+            <th>
+            Last Time
+            </th>
+            """
         if len(user_spy_data) > 0:
             for item in user_spy_data:
                 date = datetime.datetime.strptime(item[0], '%Y-%m-%d')
@@ -124,9 +129,9 @@ def get_attendance_filter_page(query):
 
     # Table end
         answer += """
+
         </tbody>
         </table>
-        </form>"""
-
+        """
     answer += tail
     return answer
