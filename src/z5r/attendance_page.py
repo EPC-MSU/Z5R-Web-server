@@ -81,11 +81,11 @@ def get_attendance_page():
     """
     answer = head
     # Start date of event collapsible view
-    start = datetime.now() - timedelta(days=(DAY_TO_SHOW-1))  
+    start = datetime.now() - timedelta(days=(DAY_TO_SHOW-1))
     for i in range(0, DAY_TO_SHOW):
-        day = start + timedelta(days=i)   
+        day = start + timedelta(days=i)
         day_str = day.strftime('%Y-%m-%d %H:%M:%S')
-        
+
         dbcon = DbZ5R()
         users_cards = dbcon.get_reg_user_card_events_per_day(day)
         free_cards = dbcon.get_free_reg_cards_events_per_day(day)
@@ -110,7 +110,7 @@ def get_attendance_page():
                 card[3]
                 )
         for card in free_cards:
-            answer += '<tr><td style="text-align:left>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
+            answer += '<tr><td style="text-align:left">{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
                 '[Резерв]',
                 int(card[0]),
                 em_marine(card[0]),
@@ -118,7 +118,7 @@ def get_attendance_page():
                 card[2]
             )
         for card in un_cards:
-            answer += '<tr><td style="text-align:left>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
+            answer += '<tr><td style="text-align:left">{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
                 '[Не зарегистрирована]',
                 card[0],
                 em_marine(card[0]),
