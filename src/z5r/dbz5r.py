@@ -1,16 +1,39 @@
 import datetime
-import time
-
+import configparser
 import pymysql
+
+
+# the global vars
+ini_has_read = False
+ini_host = ''
+ini_db = ''
+ini_login = ''
+ini_password = ''
+
+
 class DbZ5R:
-    def __init__(self, host='172.16.131.112',login='z5r', password='Ahthohj0ooJa'):
-        self._login = login
-        self._password = password
-        self._host = host
+    def __init__(self):
+        self.read_ini()
+        self._login = ini_login
+        self._password = ini_password
+        self._host = ini_host
+        self._db = ini_db
         self._con = None
 
+    @staticmethod
+    def read_ini():
+        global ini_password, ini_has_read, ini_login, ini_host, ini_db
+        if not ini_has_read:
+            ini_has_read = True
+            config = configparser.ConfigParser()
+            config.read('../z5r.ini')
+            ini_host = config['Db_Connection']['host']
+            ini_db = config.get('Db_Connection', 'db')
+            ini_login = config.get('Db_Connection', 'login')
+            ini_password = config.get('Db_Connection', 'password')
+
     def db_connect(self):
-        self._con = pymysql.connect(host=self._host, user=self._login, password=self._password, database='z5r')
+        self._con = pymysql.connect(host=self._host, user=self._login, password=self._password, database=self._db)
 
     def check_db_connection(self):
         try:
