@@ -81,8 +81,8 @@ def get_attendance_page():
     """
     answer = head
     # Start event collapsible view
-    start = datetime.now().date() - timedelta(DAY_TO_SHOW-1)  # The end of this day
-    days = [datetime(start.year, start.month, start.day) + timedelta(i) for i in range(0, DAY_TO_SHOW)]
+    start = datetime.now().date() - timedelta(days=(DAY_TO_SHOW-1))  # The end of this day
+    days = [datetime(start.year, start.month, start.day) + timedelta(days=i) for i in range(0, DAY_TO_SHOW)]
     for day in days:
         dbcon = DbZ5R()
         users_cards = dbcon.get_reg_user_card_events_per_day(day)
