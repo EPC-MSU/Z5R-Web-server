@@ -236,16 +236,19 @@ class DbZ5R:
             else:
                 return [f"{'{:012X}'.format(row[1][0])}" for row in enumerate(rows, 1)]
 
+     
     def get_reg_user_card_events_per_day(self, time_date):
         time_date_str = time_date.strftime('%Y-%m-%d %H:%M:%S')
         self.db_connect()
         with self._con:
             cursor = self._con.cursor()
+            
             cursor.execute(f'SELECT DIR_User.Name, MIN(CardId), MIN(DT), MAX(DT) FROM DIR_User '
                            f'INNER JOIN OPT_User_Cards ON DIR_User.ID = OPT_User_Cards.ID_User '
                            f'INNER JOIN DIR_Card ON DIR_Card.ID=OPT_User_Cards.ID_Card INNER JOIN REG_Event ON '
                            f'DIR_Card.CardId=AnyCardId WHERE DATE(DT)=DATE(\'{time_date_str}\') '
                            f'GROUP BY Name ORDER BY Name')
+                       
             rows = cursor.fetchall()
             if rows is None or len(rows) == 0:
                 return list()
@@ -290,6 +293,7 @@ class DbZ5R:
                            f'AND DATE(DT)=DATE(\'{time_date_str}\') '
                            f'GROUP BY AnyCardId ORDER BY AnyCardId')
             rows = cursor.fetchall()
+            
             if rows is None or len(rows) == 0:
                 return list()
             else:
