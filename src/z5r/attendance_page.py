@@ -80,10 +80,10 @@ def get_attendance_page():
     </html>
     """
     answer = head
-    # Start event collapsible view
-    start = datetime.now().date() - timedelta(days=(DAY_TO_SHOW-1))  # The end of this day
-    days = [datetime(start.year, start.month, start.day) + timedelta(days=i) for i in range(0, DAY_TO_SHOW)]
-    for day in days:
+    # Start date of event collapsible view
+    start = datetime.now() - timedelta(days=(DAY_TO_SHOW-1))  
+    for i in range(0, DAY_TO_SHOW):
+        day = start + timedelta(days=i)   
         dbcon = DbZ5R()
         users_cards = dbcon.get_reg_user_card_events_per_day(day)
         free_cards = dbcon.get_free_reg_cards_events_per_day(day)

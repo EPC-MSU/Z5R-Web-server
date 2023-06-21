@@ -26,7 +26,7 @@ class DbZ5R:
         if not ini_has_read:
             ini_has_read = True
             config = configparser.ConfigParser()
-            config.read('../z5r.ini')
+            config.read('service_data/z5r.ini')
             ini_host = config['Db_Connection']['host']
             ini_db = config.get('Db_Connection', 'db')
             ini_login = config.get('Db_Connection', 'login')

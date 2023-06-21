@@ -54,7 +54,7 @@ def get_attendance_filter_page(query):
     <h1 style="text-align: center;">Z5R Attendance | Filter page</h1>
     <form action="/attendance_filter" id="atten_filter_form" method="post">
     <label for="name_manual">Name:</label>
-        <select name="name_select" value="{name_s}" id="name_select" size="1">
+        <select name="name_select" id="name_select" value="{name_s}" size="1">
         <option selected></option>
     """
     for name in names:
@@ -73,6 +73,11 @@ def get_attendance_filter_page(query):
     """
     tail = f"""
     </form>
+    <script type="text/javascript">
+    document.getElementById('name_select').value = "{name_s}";
+    document.getElementById('dt_start').value = "{data_s1}";
+    document.getElementById('dt_end').value = "{data_s2}";
+    </script>
     </body>
     </html>
     """
