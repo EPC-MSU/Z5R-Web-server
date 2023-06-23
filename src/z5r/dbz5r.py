@@ -236,7 +236,6 @@ class DbZ5R:
             else:
                 return [f"{'{:012X}'.format(row[1][0])}" for row in enumerate(rows, 1)]
 
-
     def get_reg_user_card_events_per_day(self, time_date):
         time_date_str = time_date.strftime('%Y-%m-%d %H:%M:%S')
         self.db_connect()

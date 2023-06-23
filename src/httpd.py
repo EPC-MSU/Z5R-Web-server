@@ -207,7 +207,7 @@ def run():
     auth_file.close()
 
     if not _check_connection():
-        print('Cannot connect to the dbz5r database (172.16.131.112)! Exit now...')
+        print('Cannot connect to the z5r database! Exit now...')
         exit(2)
 
     logging.info('http server is starting...')
