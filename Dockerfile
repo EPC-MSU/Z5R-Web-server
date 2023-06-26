@@ -1,4 +1,4 @@
-FROM ubuntu:18.04 as shell-ready
+FROM ubuntu:20.04 as shell-ready
 MAINTAINER zap
 
 ENV TZ=Europe/Moscow
