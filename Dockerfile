@@ -1,4 +1,4 @@
-FROM ubuntu:18.04 as shell-ready
+FROM ubuntu:20.04 as shell-ready
 MAINTAINER zap
 
 ENV TZ=Europe/Moscow
@@ -24,12 +24,16 @@ FROM shell-ready as python-ready
 RUN apt-get -q -y install \
     python3.8 python3.10 python3-pip python3.10-distutils
 
+RUN mkdir -p /app/service_data
+COPY ./z5r.ini /app/service_data/
+COPY src/sql/Create_z5r.sql /app/service_data/
+
 WORKDIR /app
 COPY . .
 
-RUN pip3 install --upgrade pip && \
-    pip3 install -r requirements.txt && \
-    pip3 install -r requirements-test.txt
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install -r requirements.txt && \
+    python3 -m pip install -r requirements-test.txt
 
 FROM python-ready
 

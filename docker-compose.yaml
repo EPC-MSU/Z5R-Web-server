@@ -1,17 +1,48 @@
 version: '3.3'
 
 services:
+
+  z5r-mysql:
+    image: "mysql:8.0.32-debian"
+    container_name: z5r-mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_DATABASE
+      - MYSQL_USER
+      - MYSQL_PASSWORD
+    command: --default-authentication-plugin=mysql_native_password
+    cap_add: [ SYS_NICE ]
+    volumes:
+      - z5r-mysql:/var/lib/mysql
+      - z5r-server:/app/service_data
+    networks:
+      - z5r
+
   z5r-server-for-controller:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: z5r-server-for-controller
     image: z5r-server-image
+    depends_on:
+      - z5r-mysql
     restart: always
+    environment:
+      - MYSQL_HOST=z5r-mysql
     volumes:
       - z5r-server:/app/service_data
     ports:
       - "80:80"
+    networks:
+      - z5r
 
 volumes:
   z5r-server:
+  z5r-mysql:
+
+networks:
+  z5r:
+    name: z5r
+    driver: bridge
+
