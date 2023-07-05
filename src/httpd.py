@@ -174,8 +174,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 return
 
 
-def _check_connection():
-    return z5r.check_dbz5r_connection()
+def _check_create_db():
+    return z5r.check_create_db_z5r()
 
 
 def run():
@@ -206,8 +206,9 @@ def run():
     auth = auth_file.read().strip()  # strip from spaces and end of line
     auth_file.close()
 
-    if not _check_connection():
-        print('Cannot connect to the z5r database! Exit now...')
+    if not _check_create_db():
+        print('Could neither connect to z5r database nor create z5r schema! Check your mysql connection parameters. '
+              'Exit now...')
         exit(2)
 
     logging.info('http server is starting...')

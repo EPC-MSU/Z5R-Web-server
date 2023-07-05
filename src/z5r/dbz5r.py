@@ -32,8 +32,103 @@ class DbZ5R:
             ini_login = config.get('Db_Connection', 'login')
             ini_password = config.get('Db_Connection', 'password')
 
+    def set_test_db_name(self):
+        self._db += '_test'
+
     def db_connect(self):
         self._con = pymysql.connect(host=self._host, user=self._login, password=self._password, database=self._db)
+
+    def db_check_create_db_schema(self):
+        self._con = pymysql.connect(host=self._host, user=self._login, password=self._password)
+        cursor = self._con.cursor()
+        cursor.execute(f'CREATE DATABASE IF NOT EXISTS {self._db}')
+        self._con.commit()
+        self.db_connect()
+        # check and create tables now
+        cursor = self._con.cursor()
+        cursor.execute(f'CREATE TABLE IF NOT EXISTS CLS_EventType ('
+                       f'ID int primary key, Name varchar(255) not null)')
+        self._con.commit()
+        self.db_connect()
+        cursor = self._con.cursor()
+        cursor.execute(f'INSERT IGNORE INTO CLS_EventType (ID, Name)'
+                       f'(select 0, \'Opened from inside on entrance\') union'
+                       f'(select 1, \'Opened from inside on exit\') union'
+                       f'(select 2, \'Key not in database on entrance\') union'
+                       f'(select 3, \'Key not in database on exit\') union'
+                       f'(select 4, \'Key in database, door opened on entrance\') union'
+                       f'(select 5, \'Key in database, door opened on exit\') union'
+                       f'(select 6, \'Key in database, access denied on entrance\') union'
+                       f'(select 7, \'Key in database, access denied on exit\') union'
+                       f'(select 8, \'Door opened from network on entrance\') union'
+                       f'(select 9, \'Door opened from network on exit\') union'
+                       f'(select 10, \'Key in database, door locked on entrance\') union'
+                       f'(select 11, \'Key in database, door locked on exit\') union'
+                       f'(select 12, \'Door violation on entrance\') union'
+                       f'(select 13, \'Door violation on exit\') union'
+                       f'(select 14, \'Door kept open timeout on entrance\') union'
+                       f'(select 15, \'Door kept open timeout on exit\') union'
+                       f'(select 16, \'Passed on entrance\') union'
+                       f'(select 17, \'Passed on exit\') union'
+                       f'(select 20, \'Controller reboot\') union'
+                       f'(select 21, \'Power (see flag)\') union'
+                       f'(select 32, \'Door opened on entrance\') union'
+                       f'(select 33, \'Door opened on exit\') union'
+                       f'(select 34, \'Door closed on entrance\') union'
+                       f'(select 35, \'Door closed on exit\') union'
+                       f'(select 37, \'Mode changed (see flags)\') union'
+                       f'(select 38, \'Controller on fire (see flags)\') union'
+                       f'(select 39, \'Security event (see flags)\') union'
+                       f'(select 40, \'No passage during grace period on entrance\') union'
+                       f'(select 41, \'No passage during grace period on exit\') union'
+                       f'(select 48, \'Gateway is entered on entrance\') union'
+                       f'(select 49, \'Gateway is entered on exit\') union'
+                       f'(select 50, \'Gateway blocked on entrance\') union'
+                       f'(select 51, \'Gateway blocked on exit\') union'
+                       f'(select 52, \'Gateway enterance allowed on entrance\') union'
+                       f'(select 53, \'Gateway enterance allowed on exit\') union'
+                       f'(select 54, \'Passage blocked on entrance\') union'
+                       f'(select 55, \'Passage blocked on exit\')')
+
+        self._con.commit()
+        self.db_connect()
+        cursor.execute(f'CREATE TABLE IF NOT EXISTS DIR_User('
+                       f'ID int auto_increment primary key, '
+                       f'Name varchar(255) not null UNIQUE)')
+        self._con.commit()
+        self.db_connect()
+        cursor.execute(f'CREATE TABLE IF NOT EXISTS DIR_Card('
+                    f'ID int auto_increment primary key, '
+                    f'CardId int not null UNIQUE)')
+        self._con.commit()
+        self.db_connect()
+        cursor.execute(f'CREATE TABLE IF NOT EXISTS OPT_User_Cards('
+                       f'ID int auto_increment primary key, '
+                       f'ID_User int not null, '
+                       f'ID_Card int not  null unique, '
+                       f'foreign key(ID_User) '
+                       f'references DIR_User(ID), '
+                       f'foreign key (ID_Card) '
+                       f'references DIR_Card(ID), '
+                       f'unique key ID_User_Card (ID_User, ID_Card))')
+        self._con.commit()
+        self.db_connect()
+        cursor.execute(f'CREATE TABLE IF NOT EXISTS REG_Event ('
+                       f'ID int auto_increment primary key, '
+                       f'DT datetime not null, '
+                       f'ID_EventType int not null, '
+                       f'Text varchar(1024) null, '
+                       f'AnyCardId int null, '
+                       f'Controller varchar(128) null, '
+                       f'Flag int null, '
+                       f'foreign key(ID_EventType) '
+                       f'references CLS_EventType(ID))')
+
+
+
+
+
+
 
     def check_db_connection(self):
         try:
@@ -350,5 +445,16 @@ class DbZ5R:
 def check_dbz5r_connection():
     dbcon = DbZ5R()
     return dbcon.check_db_connection()
+
+
+def check_create_db_z5r():
+    try:
+        dbcon=DbZ5R()
+        dbcon.db_check_create_db_schema()
+    except pymysql.OperationalError:
+        return False
+    except Exception:
+        return  False
+    return True
 
 
