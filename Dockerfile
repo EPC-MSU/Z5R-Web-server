@@ -25,7 +25,8 @@ RUN apt-get -q -y install \
     python3.8 python3.10 python3-pip python3.10-distutils
 
 RUN mkdir -p /app/service_data
-# COPY ./z5r.ini /app/service_data/
+COPY ./z5r.ini /app/service_data/
+COPY src/sql/Create_z5r.sql /app/service_data/
 
 WORKDIR /app
 COPY . .
