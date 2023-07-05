@@ -65,24 +65,8 @@ sudo docker-compose up -d
 ```
 Это должно создать docker image с установленными пакетами, назвать его `z5r-server-image`, и попытаться запустить его
 в контейнере с именем `z5r-server-for-controller`.
-При первом запуске контейнер `z5r-server-for-controller` не сможет подключиться к базе, т.к. таблицы еще не созданы.
-Это будет исправлено. А пока:
-Остановить `z5r-server-for-controller`
-```bash
-sudo docker-compose stop z5r-server-for-controller
-```
-Зайти в контейнер mysql
-```bash
-sudo docker exec -it z5r-mysql bash
-```
-Экспортировать таблицы
-```bash
-mysql -uroot -p z5r < /app/service_data/Create_z5r.sql
-```
-И сделать перезапуск
-```bash
-sudo docker-compose start z5r-server-for-controller
-```
+Приложение создаст необходимые таблицы в базе и будет готово к работе.
+
 Если что-то пошло не так, то можно запустить сервис в текущей консоли и посмотреть логи:
 
 ```bash
