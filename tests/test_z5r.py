@@ -235,3 +235,12 @@ class TestDbZ5R(TestCase):
 
         except Exception:
             self.assertTrue(False)
+
+    def test_aaa_check_create_db_schema(self):
+        try:
+            dbcon = DbZ5R()
+            #dbcon.set_test_db_name()
+            dbcon.db_check_create_db_schema()
+
+        except Exception:
+            self.assertTrue(False)
