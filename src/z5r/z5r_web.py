@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import datetime
-import time
 import random
 import logging
 import json
@@ -94,7 +93,7 @@ class Z5RWebController:
         self.out_pending.append(message)
 
     def events_handler(self, events_json, req_id):
-        events =[]
+        events = []
         dbcon = DbZ5R()
         for event in events_json:
             try:

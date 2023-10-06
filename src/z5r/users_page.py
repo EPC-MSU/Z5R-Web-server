@@ -1,4 +1,3 @@
-import sqlite3
 from .common import em_marine, validate_em_marine, em_marine2hex, validate_hex
 from .dbz5r import DbZ5R
 
@@ -225,7 +224,7 @@ def get_users_page():
 
     for free_card in free_cards:
         free_hex_card = '{:012X}'.format(int(free_card))
-        free_em_marine=em_marine(free_hex_card)
+        free_em_marine = em_marine(free_hex_card)
         free_card0 = 'card_' + free_card
         answer += f"""
                 <tr>
@@ -277,5 +276,3 @@ def get_users_page():
 
     answer += tail
     return answer
-
-

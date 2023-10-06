@@ -46,89 +46,83 @@ class DbZ5R:
         self.db_connect()
         # check and create tables now
         cursor = self._con.cursor()
-        cursor.execute(f'CREATE TABLE IF NOT EXISTS CLS_EventType ('
-                       f'ID int primary key, Name varchar(255) not null)')
+        cursor.execute('CREATE TABLE IF NOT EXISTS CLS_EventType ('
+                       'ID int primary key, Name varchar(255) not null)')
         self._con.commit()
         self.db_connect()
         cursor = self._con.cursor()
-        cursor.execute(f'INSERT IGNORE INTO CLS_EventType (ID, Name)'
-                       f'(select 0, \'Opened from inside on entrance\') union'
-                       f'(select 1, \'Opened from inside on exit\') union'
-                       f'(select 2, \'Key not in database on entrance\') union'
-                       f'(select 3, \'Key not in database on exit\') union'
-                       f'(select 4, \'Key in database, door opened on entrance\') union'
-                       f'(select 5, \'Key in database, door opened on exit\') union'
-                       f'(select 6, \'Key in database, access denied on entrance\') union'
-                       f'(select 7, \'Key in database, access denied on exit\') union'
-                       f'(select 8, \'Door opened from network on entrance\') union'
-                       f'(select 9, \'Door opened from network on exit\') union'
-                       f'(select 10, \'Key in database, door locked on entrance\') union'
-                       f'(select 11, \'Key in database, door locked on exit\') union'
-                       f'(select 12, \'Door violation on entrance\') union'
-                       f'(select 13, \'Door violation on exit\') union'
-                       f'(select 14, \'Door kept open timeout on entrance\') union'
-                       f'(select 15, \'Door kept open timeout on exit\') union'
-                       f'(select 16, \'Passed on entrance\') union'
-                       f'(select 17, \'Passed on exit\') union'
-                       f'(select 20, \'Controller reboot\') union'
-                       f'(select 21, \'Power (see flag)\') union'
-                       f'(select 32, \'Door opened on entrance\') union'
-                       f'(select 33, \'Door opened on exit\') union'
-                       f'(select 34, \'Door closed on entrance\') union'
-                       f'(select 35, \'Door closed on exit\') union'
-                       f'(select 37, \'Mode changed (see flags)\') union'
-                       f'(select 38, \'Controller on fire (see flags)\') union'
-                       f'(select 39, \'Security event (see flags)\') union'
-                       f'(select 40, \'No passage during grace period on entrance\') union'
-                       f'(select 41, \'No passage during grace period on exit\') union'
-                       f'(select 48, \'Gateway is entered on entrance\') union'
-                       f'(select 49, \'Gateway is entered on exit\') union'
-                       f'(select 50, \'Gateway blocked on entrance\') union'
-                       f'(select 51, \'Gateway blocked on exit\') union'
-                       f'(select 52, \'Gateway enterance allowed on entrance\') union'
-                       f'(select 53, \'Gateway enterance allowed on exit\') union'
-                       f'(select 54, \'Passage blocked on entrance\') union'
-                       f'(select 55, \'Passage blocked on exit\')')
+        cursor.execute('INSERT IGNORE INTO CLS_EventType (ID, Name)'
+                       '(select 0, \'Opened from inside on entrance\') union'
+                       '(select 1, \'Opened from inside on exit\') union'
+                       '(select 2, \'Key not in database on entrance\') union'
+                       '(select 3, \'Key not in database on exit\') union'
+                       '(select 4, \'Key in database, door opened on entrance\') union'
+                       '(select 5, \'Key in database, door opened on exit\') union'
+                       '(select 6, \'Key in database, access denied on entrance\') union'
+                       '(select 7, \'Key in database, access denied on exit\') union'
+                       '(select 8, \'Door opened from network on entrance\') union'
+                       '(select 9, \'Door opened from network on exit\') union'
+                       '(select 10, \'Key in database, door locked on entrance\') union'
+                       '(select 11, \'Key in database, door locked on exit\') union'
+                       '(select 12, \'Door violation on entrance\') union'
+                       '(select 13, \'Door violation on exit\') union'
+                       '(select 14, \'Door kept open timeout on entrance\') union'
+                       '(select 15, \'Door kept open timeout on exit\') union'
+                       '(select 16, \'Passed on entrance\') union'
+                       '(select 17, \'Passed on exit\') union'
+                       '(select 20, \'Controller reboot\') union'
+                       '(select 21, \'Power (see flag)\') union'
+                       '(select 32, \'Door opened on entrance\') union'
+                       '(select 33, \'Door opened on exit\') union'
+                       '(select 34, \'Door closed on entrance\') union'
+                       '(select 35, \'Door closed on exit\') union'
+                       '(select 37, \'Mode changed (see flags)\') union'
+                       '(select 38, \'Controller on fire (see flags)\') union'
+                       '(select 39, \'Security event (see flags)\') union'
+                       '(select 40, \'No passage during grace period on entrance\') union'
+                       '(select 41, \'No passage during grace period on exit\') union'
+                       '(select 48, \'Gateway is entered on entrance\') union'
+                       '(select 49, \'Gateway is entered on exit\') union'
+                       '(select 50, \'Gateway blocked on entrance\') union'
+                       '(select 51, \'Gateway blocked on exit\') union'
+                       '(select 52, \'Gateway enterance allowed on entrance\') union'
+                       '(select 53, \'Gateway enterance allowed on exit\') union'
+                       '(select 54, \'Passage blocked on entrance\') union'
+                       '(select 55, \'Passage blocked on exit\')')
 
         self._con.commit()
         self.db_connect()
-        cursor.execute(f'CREATE TABLE IF NOT EXISTS DIR_User('
-                       f'ID int auto_increment primary key, '
-                       f'Name varchar(255) not null UNIQUE)')
+        cursor.execute('CREATE TABLE IF NOT EXISTS DIR_User('
+                       'ID int auto_increment primary key, '
+                       'Name varchar(255) not null UNIQUE)')
         self._con.commit()
         self.db_connect()
-        cursor.execute(f'CREATE TABLE IF NOT EXISTS DIR_Card('
-                    f'ID int auto_increment primary key, '
-                    f'CardId int not null UNIQUE)')
+        cursor.execute('CREATE TABLE IF NOT EXISTS DIR_Card('
+                       'ID int auto_increment primary key, '
+                       'CardId int not null UNIQUE)')
         self._con.commit()
         self.db_connect()
-        cursor.execute(f'CREATE TABLE IF NOT EXISTS OPT_User_Cards('
-                       f'ID int auto_increment primary key, '
-                       f'ID_User int not null, '
-                       f'ID_Card int not  null unique, '
-                       f'foreign key(ID_User) '
-                       f'references DIR_User(ID), '
-                       f'foreign key (ID_Card) '
-                       f'references DIR_Card(ID), '
-                       f'unique key ID_User_Card (ID_User, ID_Card))')
+        cursor.execute('CREATE TABLE IF NOT EXISTS OPT_User_Cards('
+                       'ID int auto_increment primary key, '
+                       'ID_User int not null, '
+                       'ID_Card int not  null unique, '
+                       'foreign key(ID_User) '
+                       'references DIR_User(ID), '
+                       'foreign key (ID_Card) '
+                       'references DIR_Card(ID), '
+                       'unique key ID_User_Card (ID_User, ID_Card))')
         self._con.commit()
         self.db_connect()
-        cursor.execute(f'CREATE TABLE IF NOT EXISTS REG_Event ('
-                       f'ID int auto_increment primary key, '
-                       f'DT datetime not null, '
-                       f'ID_EventType int not null, '
-                       f'Text varchar(1024) null, '
-                       f'AnyCardId int null, '
-                       f'Controller varchar(128) null, '
-                       f'Flag int null, '
-                       f'foreign key(ID_EventType) '
-                       f'references CLS_EventType(ID))')
-
-
-
-
-
-
+        cursor.execute('CREATE TABLE IF NOT EXISTS REG_Event ('
+                       'ID int auto_increment primary key, '
+                       'DT datetime not null, '
+                       'ID_EventType int not null, '
+                       'Text varchar(1024) null, '
+                       'AnyCardId int null, '
+                       'Controller varchar(128) null, '
+                       'Flag int null, '
+                       'foreign key(ID_EventType) '
+                       'references CLS_EventType(ID))')
 
     def check_db_connection(self):
         try:
@@ -231,7 +225,7 @@ class DbZ5R:
         if card_list is not None:
             for card in card_list:
                 id_card = self.insert_just_card(card)
-                if id_card !=-1 and id_user != -1:
+                if id_card != -1 and id_user != -1:
                     self.db_connect()
                     with self._con:
                         cursor = self._con.cursor()
@@ -299,7 +293,6 @@ class DbZ5R:
             self.db_connect()
             with self._con:
                 cursor = self._con.cursor()
-                card_id_str = '{}'.format(card0)
                 cursor.execute(f'DELETE IGNORE FROM DIR_Card WHERE CardId={card0}')
                 self._con.commit()
 
@@ -307,7 +300,7 @@ class DbZ5R:
         self.db_connect()
         with self._con:
             cursor = self._con.cursor()
-            cursor.execute(f'SELECT CardId FROM DIR_Card')
+            cursor.execute('SELECT CardId FROM DIR_Card')
             rows = cursor.fetchall()
             if rows is None or len(rows) == 0:
                 return list()
@@ -449,12 +442,10 @@ def check_dbz5r_connection():
 
 def check_create_db_z5r():
     try:
-        dbcon=DbZ5R()
+        dbcon = DbZ5R()
         dbcon.db_check_create_db_schema()
     except pymysql.OperationalError:
         return False
     except Exception:
-        return  False
+        return False
     return True
-
-

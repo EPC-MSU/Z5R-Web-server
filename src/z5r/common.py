@@ -1,6 +1,4 @@
-import sqlite3
 import re
-import logging
 
 
 def em_marine(card_hex):

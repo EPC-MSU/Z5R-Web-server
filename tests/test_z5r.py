@@ -1,7 +1,7 @@
 from unittest import TestCase
 from src.z5r import Z5RWebController
 from src.z5r.users_page import _get_user_cards_list
-from src.z5r.dbz5r import  DbZ5R
+from src.z5r.dbz5r import DbZ5R
 import os
 import binascii
 from datetime import datetime
@@ -212,7 +212,7 @@ class TestDbZ5R(TestCase):
     def test_add_delete_user_cards(self):
         try:
             dbcon = DbZ5R()
-            dbcon.insert_user_card_list('Testing User', [201,203])
+            dbcon.insert_user_card_list('Testing User', [201, 203])
             dbcon.delete_data('Testing User', '')
 
         except Exception:
@@ -239,7 +239,6 @@ class TestDbZ5R(TestCase):
     def test_aaa_check_create_db_schema(self):
         try:
             dbcon = DbZ5R()
-            #dbcon.set_test_db_name()
             dbcon.db_check_create_db_schema()
 
         except Exception:
